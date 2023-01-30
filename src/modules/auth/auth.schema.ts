@@ -22,9 +22,6 @@ export const registerSchema = object({
 		lastName: string({
 			required_error: 'Last name is required',
 		}),
-		middleName: string(),
-		gender: z.nativeEnum(Gender),
-		dateOfBirth: string(),
 		username: string().min(3, 'Username is too short'),
 		password: string().min(6, 'Password should be minimum of 6 characters'),
 		email: string().email().min(5, 'Enter a valid email'),

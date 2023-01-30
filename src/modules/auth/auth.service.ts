@@ -13,15 +13,15 @@ export async function createUser({
 }: registerInput) {
 	//
 	log.info('Checking if user already exists');
-	const userExists = db.userLoginData.findUnique({
+	const userExists = await db.userLoginData.findUnique({
 		where: {
 			username,
 		},
 	});
 
-	if (!userExists) {
+	if (userExists) {
 		throw new ApiError(
-			'Duplicate User',
+			'BAD REQUEST',
 			HttpStatusCode.BAD_REQUEST,
 			'User already exists with that username',
 		);
@@ -45,10 +45,7 @@ export async function createUser({
 		},
 		select: {
 			firstName: true,
-			middleName: true,
 			lastName: true,
-			dateOfBirth: true,
-			gender: true,
 			userLoginData: {
 				select: {
 					email: true,

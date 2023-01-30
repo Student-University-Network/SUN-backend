@@ -28,13 +28,20 @@ model User {
   createdAt       DateTime      @default(now()) @db.Timestamptz()
   updatedAt       DateTime      @updatedAt
   firstName       String
-  middleName      String?
   lastName        String
-  gender          Gender
   role            Role          @default(STUDENT)
-  dateOfBirth     DateTime?     @db.Date
   userLoginData   UserLoginData @relation(fields: [userLoginDataId], references: [id])
   userLoginDataId String        @unique
+  profile         Profile?      @relation(fields: [profileId], references: [id])
+  profileId       String?       @unique
+}
+
+model Profile {
+  id          String    @id @default(uuid())
+  gender      Gender
+  middleName  String?
+  dateOfBirth DateTime? @db.Date
+  User        User?
 }
 
 model UserLoginData {
