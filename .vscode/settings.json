@@ -1,0 +1,17 @@
+{
+	"editor.formatOnSave": true,
+	"editor.defaultFormatter": "esbenp.prettier-vscode",
+	"prettier.useEditorConfig": false,
+	"prettier.configPath": ".prettierrc",
+	// "editor.codeActionsOnSave": {
+	// 	"source.formatDocument": true,
+	// 	"source.fixAll.eslint": true
+	// },
+	"[jsonc]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"typescript.preferences.importModuleSpecifier": "non-relative",
+	"[prisma]": {
+		"editor.defaultFormatter": "Prisma.prisma"
+	}
+}

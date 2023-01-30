@@ -1,0 +1,40 @@
+{
+	"name": "sun-backend",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"format": "prettier --write .",
+		"lint": "eslint . --max-warnings 0 --report-unused-disable-directives",
+		"lint:fix": "npm run lint -- --fix",
+		"start": "node dist/index.js",
+		"dev": "tsc-watch --onSuccess \"node dist/index.js\"",
+		"build": "tsc",
+		"postinstall": "npm run build",
+		"prepare": "husky install"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"devDependencies": {
+		"@types/node": "^18.11.18",
+		"@typescript-eslint/eslint-plugin": "^5.49.0",
+		"@typescript-eslint/parser": "^5.49.0",
+		"eslint": "^8.33.0",
+		"eslint-config-prettier": "^8.6.0",
+		"husky": "^8.0.3",
+		"lint-staged": "^13.1.0",
+		"prettier": "2.8.3",
+		"tsc-watch": "^6.0.0",
+		"typescript": "^4.9.4"
+	},
+	"lint-staged": {
+		"*": "prettier --ignore-unknown --write"
+	},
+	"_moduleAliases": {
+		"@/config": "dist/config",
+		"@/utils": "dist/utils",
+		"@/modules": "dist/modules",
+		"@/constants": "dist/constants"
+	}
+}
