@@ -11,11 +11,7 @@ import errorHandler from '@/utils/errorHandler';
 const app = express();
 
 app.use(helmet());
-app.use(
-	cors({
-		credentials: true,
-	}),
-);
+app.use(cors(config.api.cors));
 app.use(express.json());
 app.use(compression());
 app.use(cookieParser());

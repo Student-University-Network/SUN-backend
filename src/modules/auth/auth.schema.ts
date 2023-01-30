@@ -1,4 +1,3 @@
-import { Gender } from '@prisma/client';
 import { object, string, TypeOf, z } from 'zod';
 
 export const loginSchema = object({

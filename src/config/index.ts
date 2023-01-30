@@ -26,6 +26,12 @@ type Config = {
 	};
 	api: {
 		prefix: string;
+		cors: any;
+	};
+	secrets: {
+		accessToken: string;
+		refreshToken: string;
+		accessTokenExpiry: string;
 	};
 };
 
@@ -39,6 +45,14 @@ export default merge(
 		},
 		api: {
 			prefix: '/api',
+			cors: {
+				credentials: true,
+			},
+		},
+		secrets: {
+			accessToken: process.env.ACCESS_TOKEN_SECRET,
+			refreshToken: process.env.REFRESH_TOKEN_SECRET,
+			accessTokenExpiry: process.env.ACCESS_TOKEN_EXPIRY,
 		},
 	},
 	envConfig,

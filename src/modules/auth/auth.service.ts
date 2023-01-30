@@ -1,9 +1,11 @@
 import { HttpStatusCode } from '@/constants/HttpStatusCodes';
-import { registerInput } from '@/modules/auth/auth.schema';
+import { loginInput, registerInput } from '@/modules/auth/auth.schema';
 import { ApiError } from '@/utils/ApiError';
 import { db } from '@/utils/database';
 import log from '@/utils/logger';
 import argon2 from 'argon2';
+import config from '@/config';
+import jwt from 'jsonwebtoken';
 
 export async function createUser({
 	email,
@@ -12,7 +14,7 @@ export async function createUser({
 	...rest
 }: registerInput) {
 	//
-	log.info('Checking if user already exists');
+	log.debug('Checking if user already exists');
 	const userExists = await db.userLoginData.findUnique({
 		where: {
 			username,
@@ -27,11 +29,11 @@ export async function createUser({
 		);
 	}
 
-	log.info('Hashing the password');
+	log.debug('Hashing the password');
 	const hash = await argon2.hash(password);
 
 	// Create record with hashed password
-	log.info('Creating user record in the database');
+	log.debug('Creating user record in the database');
 	const user = await db.user.create({
 		data: {
 			...rest,
@@ -63,7 +65,70 @@ export async function createUser({
 		);
 	}
 
-	log.info('User created successfully!');
+	log.debug('User created successfully!');
 
 	return { ...user };
+}
+
+export async function login({ username, password }: loginInput) {
+	log.debug('Check if the user exists');
+	const userExists = await db.userLoginData.findUnique({
+		where: {
+			username,
+		},
+	});
+
+	if (!userExists) {
+		throw new ApiError(
+			'UNAUTHORIZED',
+			HttpStatusCode.UNAUTHORIZED,
+			'Username or password is incorrect', // Not a good idea to tell the user what exactly is incorrect
+		);
+	}
+	log.debug('Verifying password');
+	const isVerified = await argon2.verify(userExists.password, password);
+
+	if (!isVerified) {
+		throw new ApiError(
+			'BAD REQUEST',
+			HttpStatusCode.BAD_REQUEST,
+			'Username or password is incorrect',
+		);
+	}
+	// all good
+	// generate accesToken, refreshToken and return
+	const accessToken = await generateAccessToken(userExists.username);
+	const refreshToken = await generateRefreshToken(userExists.username);
+
+	return {
+		username: userExists.username,
+		accessToken,
+		refreshToken,
+	};
+	// TODO: save the per device session somewhere
+}
+
+async function generateAccessToken(username: string) {
+	log.debug('Signing jwt for user %s', username);
+	return await jwt.sign(
+		{
+			username,
+		},
+		config.secrets.accessToken,
+		{
+			expiresIn: config.secrets.accessTokenExpiry,
+		},
+	);
+}
+
+async function generateRefreshToken(username: string) {
+	return await jwt.sign(
+		{
+			username,
+		},
+		config.secrets.refreshToken,
+		{
+			expiresIn: '1d',
+		},
+	);
 }
