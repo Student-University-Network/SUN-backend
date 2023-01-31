@@ -6,6 +6,7 @@ import log from '@/utils/logger';
 import argon2 from 'argon2';
 import config from '@/config';
 import jwt from 'jsonwebtoken';
+import { Role } from '@prisma/client';
 
 export async function createUser({
 	email,
@@ -76,6 +77,11 @@ export async function login({ username, password }: loginInput) {
 		where: {
 			username,
 		},
+		select: {
+			username: true,
+			password: true,
+			User: true,
+		},
 	});
 
 	if (!userExists) {
@@ -97,8 +103,12 @@ export async function login({ username, password }: loginInput) {
 	}
 	// all good
 	// generate accesToken, refreshToken and return
-	const accessToken = await generateAccessToken(userExists.username);
-	const refreshToken = await generateRefreshToken(userExists.username);
+	const payload: JWTPayload = {
+		username: userExists.username,
+		role: userExists.User?.role,
+	};
+	const accessToken = await generateJWT(payload, 'accessToken');
+	const refreshToken = await generateJWT(payload, 'refreshToken');
 
 	return {
 		username: userExists.username,
@@ -106,6 +116,30 @@ export async function login({ username, password }: loginInput) {
 		refreshToken,
 	};
 	// TODO: save the per device session somewhere
+}
+
+export type JWTPayload = {
+	username: string;
+	role: Role | undefined;
+};
+async function generateJWT({ username, role }: JWTPayload, type: string) {
+	log.debug('Signing jwt for user %s', username);
+
+	return await jwt.sign(
+		{
+			username,
+			role,
+		},
+		type === 'accessToken'
+			? config.secrets.accessToken
+			: config.secrets.refreshToken,
+		{
+			expiresIn:
+				type === 'accessToken'
+					? config.secrets.accessTokenExpiry
+					: '1d',
+		},
+	);
 }
 
 async function generateAccessToken(username: string) {
