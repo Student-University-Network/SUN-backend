@@ -1,7 +1,12 @@
 import { HttpStatusCode } from '@/constants/HttpStatusCodes';
 import { Status } from '@/constants/Status';
 import { loginInput, registerInput } from '@/modules/auth/auth.schema';
-import { createUser, login } from '@/modules/auth/auth.service';
+import {
+	createUser,
+	login,
+	generateAccessToken,
+} from '@/modules/auth/auth.service';
+import log from '@/utils/logger';
 import { Request, Response } from 'express';
 
 export async function loginHandler(
@@ -32,5 +37,18 @@ export async function registerHandler(
 		status: Status.SUCCESS,
 		message: 'User created successfully!',
 		user,
+	});
+}
+
+export async function refreshTokenHandler(req: Request, res: Response) {
+	const refreshToken = req.cookies['x-refresh'];
+	log.debug(refreshToken);
+	const accessToken = await generateAccessToken(refreshToken);
+
+	if (!accessToken) return res.sendStatus(HttpStatusCode.UNAUTHORIZED);
+
+	log.debug('Access Token Generated %s', accessToken);
+	res.status(HttpStatusCode.OK).json({
+		accessToken,
 	});
 }

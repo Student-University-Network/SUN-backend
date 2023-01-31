@@ -142,27 +142,11 @@ async function generateJWT({ username, role }: JWTPayload, type: string) {
 	);
 }
 
-async function generateAccessToken(username: string) {
-	log.debug('Signing jwt for user %s', username);
-	return await jwt.sign(
-		{
-			username,
-		},
-		config.secrets.accessToken,
-		{
-			expiresIn: config.secrets.accessTokenExpiry,
-		},
-	);
-}
+export async function generateAccessToken(token: string) {
+	const isValid = await jwt.verify(token, config.secrets.refreshToken);
+	if (!isValid) return undefined;
+	log.debug(isValid as JWTPayload);
+	const accessToken = await generateJWT(isValid as JWTPayload, 'accessToken');
 
-async function generateRefreshToken(username: string) {
-	return await jwt.sign(
-		{
-			username,
-		},
-		config.secrets.refreshToken,
-		{
-			expiresIn: '1d',
-		},
-	);
+	return accessToken;
 }
