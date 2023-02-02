@@ -47,6 +47,7 @@ export default merge(
 			prefix: '/api',
 			cors: {
 				credentials: true,
+				origin: ["http://localhost:3000"]
 			},
 		},
 		secrets: {
