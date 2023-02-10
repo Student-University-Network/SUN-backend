@@ -24,6 +24,11 @@ type Config = {
 	logger: {
 		level: string;
 	};
+	admin: {
+		username: string;
+		password: string;
+		email: string;
+	};
 	api: {
 		prefix: string;
 		cors: any;
@@ -43,11 +48,16 @@ export default merge(
 		logger: {
 			level: 'info',
 		},
+		admin: {
+			username: 'admin',
+			password: 'admin',
+			email: 'admin@admin.com',
+		},
 		api: {
 			prefix: '/api',
 			cors: {
 				credentials: true,
-				origin: ["http://localhost:3000"]
+				origin: ['http://localhost:3000'],
 			},
 		},
 		secrets: {
