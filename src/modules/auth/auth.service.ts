@@ -6,7 +6,7 @@ import log from '@/utils/logger';
 import argon2 from 'argon2';
 import config from '@/config';
 import jwt from 'jsonwebtoken';
-import { Role } from '@prisma/client';
+import { Role, User } from '@prisma/client';
 
 export async function createUser({
 	email,
@@ -84,7 +84,7 @@ export async function login({ username, password }: loginInput) {
 		},
 	});
 
-	if (!userExists) {
+	if (!userExists || !userExists.User) {
 		throw new ApiError(
 			'UNAUTHORIZED',
 			HttpStatusCode.UNAUTHORIZED,
@@ -104,8 +104,15 @@ export async function login({ username, password }: loginInput) {
 	// all good
 	// generate accesToken, refreshToken and return
 	const payload: JWTPayload = {
-		username: userExists.username,
-		role: userExists.User?.role,
+		User: {
+			id: userExists.User.id,
+			createdAt: userExists.User.createdAt,
+			updatedAt: userExists.User.updatedAt,
+			username: userExists.username,
+			firstName: userExists.User.firstName,
+			lastName: userExists.User.lastName,
+			role: userExists.User.role,
+		},
 	};
 	const accessToken = await generateJWT(payload, 'accessToken');
 	const refreshToken = await generateJWT(payload, 'refreshToken');
@@ -119,17 +126,22 @@ export async function login({ username, password }: loginInput) {
 }
 
 export type JWTPayload = {
-	username: string;
-	role: Role | undefined;
+	User: {
+		id: string;
+		createdAt: Date;
+		updatedAt: Date;
+		username: string;
+		firstName: string;
+		lastName: string;
+		role: Role;
+	};
 };
-async function generateJWT({ username, role }: JWTPayload, type: string) {
-	log.debug('Signing jwt for user %s', username);
+
+async function generateJWT(payload: JWTPayload, type: string) {
+	log.debug('Signing jwt for user %s', payload.User.username);
 
 	return await jwt.sign(
-		{
-			username,
-			role,
-		},
+		payload,
 		type === 'accessToken'
 			? config.secrets.accessToken
 			: config.secrets.refreshToken,
