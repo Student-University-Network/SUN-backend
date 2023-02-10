@@ -33,7 +33,7 @@
 		"lint-staged": "^13.1.0",
 		"pino-pretty": "^9.1.1",
 		"prettier": "2.8.3",
-		"prisma": "^4.9.0",
+		"prisma": "^4.10.1",
 		"prisma-dbml-generator": "^0.10.0",
 		"tsc-watch": "^6.0.0",
 		"typescript": "^4.9.4"
@@ -48,7 +48,7 @@
 		"@/constants": "dist/constants"
 	},
 	"dependencies": {
-		"@prisma/client": "^4.9.0",
+		"@prisma/client": "^4.10.1",
 		"argon2": "^0.30.3",
 		"compression": "^1.7.4",
 		"cookie-parser": "^1.4.6",
