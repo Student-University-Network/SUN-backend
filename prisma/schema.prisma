@@ -37,8 +37,7 @@ model User {
   role            Role          @default(STUDENT)
   userLoginData   UserLoginData @relation(fields: [userLoginDataId], references: [id])
   userLoginDataId String        @unique
-  profile         Profile?      @relation(fields: [profileId], references: [id])
-  profileId       String?       @unique
+  profile         Profile?
 }
 
 model Profile {
@@ -46,7 +45,10 @@ model Profile {
   gender      Gender?
   middleName  String?
   dateOfBirth DateTime? @db.Date()
-  User        User?
+  user        User?     @relation(fields: [userId], references: [id])
+  userId      String    @unique
+
+  @@index(userId)
 }
 
 model UserLoginData {
