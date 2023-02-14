@@ -10,3 +10,25 @@ export const updateProfileSchema = object({
 });
 
 export type updateProfileInput = TypeOf<typeof updateProfileSchema>['body'];
+
+export const changePasswordSchema = object({
+	body: object({
+		currentPassword: string({
+			required_error: 'Current Password is required',
+		}).min(4, 'Password too short!'),
+		newPassword: string({
+			required_error: 'Password is required',
+		}).min(4, 'New Password too short'),
+		confirmPassword: string({
+			required_error: 'Confirm password is required',
+		}).min(4, 'Confirm Password is too short'),
+	})
+		.refine((data) => data.newPassword === data.confirmPassword, {
+			message: 'Passwords do not match',
+		})
+		.refine((data) => data.currentPassword !== data.newPassword, {
+			message: 'Please choose a password different than current password',
+		}),
+});
+
+export type changePasswordInput = TypeOf<typeof changePasswordSchema>['body'];

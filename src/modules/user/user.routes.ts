@@ -1,10 +1,14 @@
 import { Router } from 'express';
 import { verifyJWT } from '@/modules/auth/auth.middleware';
 import {
+	changePasswordHandler,
 	getProfileHandler,
 	updateProfileHandler,
 } from '@/modules/user/user.controller';
-import { updateProfileSchema } from '@/modules/user/user.schema';
+import {
+	changePasswordSchema,
+	updateProfileSchema,
+} from '@/modules/user/user.schema';
 import validateRequest from '@/utils/validateRequest';
 
 const router = Router();
@@ -15,6 +19,13 @@ router.put(
 	verifyJWT,
 	validateRequest(updateProfileSchema),
 	updateProfileHandler,
+);
+
+router.put(
+	'/password',
+	verifyJWT,
+	validateRequest(changePasswordSchema),
+	changePasswordHandler,
 );
 
 export default router;

@@ -1,14 +1,21 @@
 import { HttpStatusCode } from '@/constants/HttpStatusCodes';
 import { Status } from '@/constants/Status';
-import { updateProfileInput } from '@/modules/user/user.schema';
-import { getUserProfile, updateUserProfile } from '@/modules/user/user.service';
+import {
+	changePasswordInput,
+	updateProfileInput,
+} from '@/modules/user/user.schema';
+import {
+	getUserProfile,
+	updatePassword,
+	updateUserProfile,
+} from '@/modules/user/user.service';
 import { Request, Response } from 'express';
 
 export async function getProfileHandler(req: Request, res: Response) {
 	const userProfile = await getUserProfile(req.user?.User.id!);
 
 	res.status(HttpStatusCode.OK).json({
-		message: Status.SUCCESS,
+		status: Status.SUCCESS,
 		data: userProfile,
 	});
 }
@@ -22,7 +29,19 @@ export async function updateProfileHandler(
 	const updatedProfile = await updateUserProfile(req.user?.User.id!, body);
 
 	res.status(HttpStatusCode.CREATED).json({
-		message: Status.SUCCESS,
+		status: Status.SUCCESS,
 		data: updatedProfile,
+	});
+}
+
+export async function changePasswordHandler(
+	req: Request<{}, {}, changePasswordInput>,
+	res: Response,
+) {
+	const changePass = updatePassword(req.user?.User.id!, req.body);
+
+	res.status(HttpStatusCode.OK).json({
+		status: Status.SUCCESS,
+		message: 'Password updated successfully',
 	});
 }
