@@ -42,7 +42,9 @@ export async function registerHandler(
 
 export async function refreshTokenHandler(req: Request, res: Response) {
 	const refreshToken = req.cookies['x-refresh'];
-	log.debug(refreshToken);
+
+	if (!refreshToken) return res.sendStatus(HttpStatusCode.UNAUTHORIZED);
+
 	const accessToken = await generateAccessToken(refreshToken);
 
 	if (!accessToken) return res.sendStatus(HttpStatusCode.UNAUTHORIZED);
@@ -50,5 +52,18 @@ export async function refreshTokenHandler(req: Request, res: Response) {
 	log.debug('Access Token Generated %s', accessToken);
 	res.status(HttpStatusCode.OK).json({
 		accessToken,
+	});
+}
+
+export async function logoutHandler(req: Request, res: Response) {
+	// reset x-refresh cookie
+	res.cookie('x-refresh', '', {
+		httpOnly: true,
+		maxAge: 1,
+	});
+
+	res.status(HttpStatusCode.OK).json({
+		status: Status.SUCCESS,
+		message: 'Logged out successfully',
 	});
 }
