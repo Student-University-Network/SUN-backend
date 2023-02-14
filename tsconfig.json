@@ -16,7 +16,7 @@
 		"strict": true /* Enable all strict type-checking options. */,
 		"skipLibCheck": true /* Skip type checking all .d.ts files. */
 	},
-	"exclude": ["prisma/seed.ts"],
+	"exclude": ["prisma/seed.ts", "dist"],
 	"ts-node": {
 		"require": ["tsconfig-paths/register"]
 	}
