@@ -155,10 +155,19 @@ async function generateJWT(payload: JWTPayload, type: string) {
 }
 
 export async function generateAccessToken(token: string) {
-	const isValid = await jwt.verify(token, config.secrets.refreshToken);
+	const isValid = (await jwt.verify(
+		token,
+		config.secrets.refreshToken,
+	)) as JWTPayload;
+
 	if (!isValid) return undefined;
-	log.debug(isValid as JWTPayload);
-	const accessToken = await generateJWT(isValid as JWTPayload, 'accessToken');
+
+	log.debug(isValid);
+
+	const payload = {
+		User: isValid.User,
+	};
+	const accessToken = await generateJWT(payload, 'accessToken');
 
 	return accessToken;
 }

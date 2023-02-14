@@ -1,5 +1,6 @@
 import {
 	loginHandler,
+	logoutHandler,
 	refreshTokenHandler,
 	registerHandler,
 } from '@/modules/auth/auth.controller';
@@ -13,6 +14,7 @@ const router = Router();
 router.post('/login', validateRequest(loginSchema), loginHandler);
 router.post('/register', validateRequest(registerSchema), registerHandler);
 router.get('/refreshToken', refreshTokenHandler);
+router.post('/logout', logoutHandler);
 
 router.get('/test', verifyJWT, (req, res) => {
 	res.send({

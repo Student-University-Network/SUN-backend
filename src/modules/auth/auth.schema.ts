@@ -7,7 +7,7 @@ export const loginSchema = object({
 		}).min(3, 'Username is too short'),
 		password: string({
 			required_error: 'Password is required',
-		}).min(6, 'Password should be minimum of 6 characters'),
+		}).min(4, 'Password should be minimum of 4 characters'),
 	}),
 });
 

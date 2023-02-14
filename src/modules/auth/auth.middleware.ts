@@ -3,13 +3,20 @@ import { NextFunction, Request, Response } from 'express';
 import log from '@/utils/logger';
 import config from '@/config';
 import { JWTPayload } from '@/modules/auth/auth.service';
+import { HttpStatusCode } from '@/constants/HttpStatusCodes';
 
 // verify normal student
 export const verifyJWT = (req: Request, res: Response, next: NextFunction) => {
+	// check if x-refresh cookie is set or not (temp fix for now)
+	const refresh = req.cookies['x-refresh'];
+	if (!refresh) return res.sendStatus(HttpStatusCode.UNAUTHORIZED);
+
 	// get auth header
 	const authHeader = req.headers.authorization;
-	if (!authHeader) return res.sendStatus(401);
+	if (!authHeader) return res.sendStatus(HttpStatusCode.UNAUTHORIZED);
+
 	log.debug(authHeader);
+
 	const token = authHeader.split(' ')[1];
 
 	// very jwt token
