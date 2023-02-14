@@ -43,7 +43,7 @@ model User {
 
 model Profile {
   id          String    @id @default(uuid())
-  gender      Gender
+  gender      Gender?
   middleName  String?
   dateOfBirth DateTime? @db.Date()
   User        User?
