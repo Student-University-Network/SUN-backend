@@ -12,15 +12,15 @@ Table User {
   userLoginData UserLoginData [not null]
   userLoginDataId String [unique, not null]
   profile Profile
-  profileId String [unique]
 }
 
 Table Profile {
   id String [pk]
-  gender Gender [not null]
+  gender Gender
   middleName String
   dateOfBirth DateTime
-  User User
+  user User
+  userId String [unique, not null]
 }
 
 Table UserLoginData {
@@ -46,4 +46,4 @@ Enum Role {
 
 Ref: User.userLoginDataId - UserLoginData.id
 
-Ref: User.profileId - Profile.id
+Ref: Profile.userId - User.id
