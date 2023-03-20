@@ -12,6 +12,8 @@ export async function createUser({
 	email,
 	username,
 	password,
+	firstName,
+	lastName,
 	...rest
 }: registerInput) {
 	//
@@ -45,16 +47,21 @@ export async function createUser({
 					password: hash,
 				},
 			},
+			profile: {
+				create: {
+					firstName,
+					lastName,
+				},
+			},
 		},
 		select: {
-			firstName: true,
-			lastName: true,
 			userLoginData: {
 				select: {
 					email: true,
 					username: true,
 				},
 			},
+			profile: true,
 		},
 	});
 
@@ -80,7 +87,11 @@ export async function login({ username, password }: loginInput) {
 		select: {
 			username: true,
 			password: true,
-			User: true,
+			User: {
+				include: {
+					profile: true,
+				},
+			},
 		},
 	});
 
@@ -109,8 +120,8 @@ export async function login({ username, password }: loginInput) {
 			createdAt: userExists.User.createdAt,
 			updatedAt: userExists.User.updatedAt,
 			username: userExists.username,
-			firstName: userExists.User.firstName,
-			lastName: userExists.User.lastName,
+			firstName: userExists.User.profile?.firstName || '',
+			lastName: userExists.User.profile?.lastName || '',
 			role: userExists.User.role,
 		},
 	};

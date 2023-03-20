@@ -72,9 +72,6 @@ export async function updatePassword(
 				},
 			},
 		},
-		select: {
-			firstName: true,
-		},
 	});
 
 	return updatePassword;

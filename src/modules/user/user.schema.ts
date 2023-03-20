@@ -3,6 +3,8 @@ import { date, nativeEnum, object, string, TypeOf, z } from 'zod';
 
 export const updateProfileSchema = object({
 	body: object({
+		firstName: string().min(3, 'Firstname is too short'),
+		lastName: string(),
 		gender: nativeEnum(Gender).optional(),
 		middleName: string().min(3, 'Middlename too short').optional(),
 		dateOfBirth: date().optional(),

@@ -6,8 +6,6 @@ Table User {
   id String [pk]
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime [not null]
-  firstName String [not null]
-  lastName String [not null]
   role Role [not null, default: 'STUDENT']
   userLoginData UserLoginData [not null]
   userLoginDataId String [unique, not null]
@@ -17,6 +15,8 @@ Table User {
 Table Profile {
   id String [pk]
   gender Gender
+  firstName String
+  lastName String
   middleName String
   dateOfBirth DateTime
   user User
