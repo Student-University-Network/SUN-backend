@@ -13,15 +13,14 @@ export const verifyJWT = (req: Request, res: Response, next: NextFunction) => {
 
 	// get auth header
 	const authHeader = req.headers.authorization;
-	if (!authHeader) return res.sendStatus(HttpStatusCode.UNAUTHORIZED);
-
+	if (!authHeader) return res.sendStatus(HttpStatusCode.FORBIDDEN);
 	log.debug(authHeader);
 
 	const token = authHeader.split(' ')[1];
 
 	// very jwt token
 	jwt.verify(token, config.secrets.accessToken, (err, decoded) => {
-		if (err) return res.sendStatus(403);
+		if (err) return res.sendStatus(HttpStatusCode.FORBIDDEN);
 		req.user = decoded as JWTPayload;
 		log.debug(req.user);
 		next();

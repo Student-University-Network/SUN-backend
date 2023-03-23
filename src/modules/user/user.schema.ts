@@ -6,8 +6,8 @@ export const updateProfileSchema = object({
 		firstName: string().min(3, 'Firstname is too short'),
 		lastName: string(),
 		gender: nativeEnum(Gender).optional(),
-		middleName: string().min(3, 'Middlename too short').optional(),
-		dateOfBirth: date().optional(),
+		middleName: string().optional(),
+		dateOfBirth: z.coerce.date().optional(),
 	}),
 });
 

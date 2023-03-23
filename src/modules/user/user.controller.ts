@@ -10,10 +10,11 @@ import {
 	updateUserProfile,
 } from '@/modules/user/user.service';
 import { Request, Response } from 'express';
+import log from '@/utils/logger';
 
 export async function getProfileHandler(req: Request, res: Response) {
 	const userProfile = await getUserProfile(req.user?.User.id!);
-
+	log.debug(userProfile);
 	res.status(HttpStatusCode.OK).json({
 		status: Status.SUCCESS,
 		data: userProfile,
@@ -38,7 +39,7 @@ export async function changePasswordHandler(
 	req: Request<{}, {}, changePasswordInput>,
 	res: Response,
 ) {
-	const changePass = updatePassword(req.user?.User.id!, req.body);
+	const changePass = await updatePassword(req.user?.User.id!, req.body);
 
 	res.status(HttpStatusCode.OK).json({
 		status: Status.SUCCESS,
