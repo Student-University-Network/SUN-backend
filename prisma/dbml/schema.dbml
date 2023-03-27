@@ -10,6 +10,7 @@ Table User {
   userLoginData UserLoginData [not null]
   userLoginDataId String [unique, not null]
   profile Profile
+  academicDetails AcademicDetails
 }
 
 Table Profile {
@@ -31,6 +32,55 @@ Table UserLoginData {
   User User
 }
 
+Table AcademicDetails {
+  userId String [pk]
+  User User [not null]
+  rollNo Int [unique, not null]
+  batchId String [not null]
+  batch Batch [not null]
+  programId String [not null]
+  program Program [not null]
+}
+
+Table Batch {
+  id String [pk]
+  batchName String [not null]
+  students AcademicDetails [not null]
+  program Program
+  programId String
+}
+
+Table Program {
+  programId String [pk]
+  programName String [unique, not null]
+  duration Int [not null, default: 0]
+  startYear DateTime [not null]
+  endYear DateTime [not null]
+  tag String [not null, default: '']
+  semesters Semester [not null]
+  currentSemester Int [not null, default: 0]
+  students AcademicDetails [not null]
+  batches Batch [not null]
+}
+
+Table Semester {
+  semesterId String [pk]
+  semesterName String [not null]
+  order Int [not null]
+  programId String [not null]
+  program Program [not null]
+  courses Course [not null]
+}
+
+Table Course {
+  courseId String [pk]
+  courseName String [not null]
+  totalLectures Int [not null, default: 0]
+  compulsory Boolean [not null, default: true]
+  semesterId String [not null]
+  semester Semester [not null]
+}
+
 Enum Gender {
   MALE
   FEMALE
@@ -47,3 +97,15 @@ Enum Role {
 Ref: User.userLoginDataId - UserLoginData.id
 
 Ref: Profile.userId - User.id
+
+Ref: AcademicDetails.userId - User.id
+
+Ref: AcademicDetails.batchId > Batch.id
+
+Ref: AcademicDetails.programId > Program.programId
+
+Ref: Batch.programId > Program.programId
+
+Ref: Semester.programId > Program.programId
+
+Ref: Course.semesterId > Semester.semesterId

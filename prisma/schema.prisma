@@ -29,13 +29,15 @@ enum Role {
 }
 
 model User {
-  id              String        @id @default(uuid())
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  role            Role          @default(STUDENT)
-  userLoginData   UserLoginData @relation(fields: [userLoginDataId], references: [id])
-  userLoginDataId String        @unique
+  id              String           @id @default(uuid())
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  role            Role             @default(STUDENT)
+  userLoginData   UserLoginData    @relation(fields: [userLoginDataId], references: [id])
+  userLoginDataId String           @unique
   profile         Profile?
+  academicDetails AcademicDetails?
+  // teachesCourses  TeachersOnCourse[]
 }
 
 model Profile {
@@ -57,4 +59,69 @@ model UserLoginData {
   password String
   email    String @unique
   User     User?
+}
+
+model AcademicDetails {
+  userId    String  @id @default(uuid())
+  User      User    @relation(fields: [userId], references: [id])
+  rollNo    Int     @unique
+  batchId   String
+  batch     Batch   @relation(fields: [batchId], references: [id])
+  programId String
+  program   Program @relation(fields: [programId], references: [programId])
+
+  @@index([userId])
+  @@index([batchId])
+  @@index([programId])
+}
+
+model Batch {
+  id        String            @id @default(uuid())
+  batchName String            @db.VarChar(255)
+  students  AcademicDetails[]
+  // courses   TeachersOnCourse[]
+  program   Program?          @relation(fields: [programId], references: [programId])
+  programId String?
+  // timetable Timetable?
+
+  @@index([programId])
+}
+
+model Program {
+  programId       String            @id @default(uuid())
+  programName     String            @unique
+  duration        Int               @default(0)
+  startYear       DateTime
+  endYear         DateTime
+  tag             String            @default("")
+  semesters       Semester[]
+  currentSemester Int               @default(0)
+  students        AcademicDetails[]
+  batches         Batch[]
+  // announcement    Announcement[]
+}
+
+model Semester {
+  semesterId   String   @id @default(uuid())
+  semesterName String   @db.VarChar(255)
+  order        Int
+  programId    String   @db.VarChar(255)
+  program      Program  @relation(fields: [programId], references: [programId])
+  courses      Course[]
+
+  @@index([programId])
+}
+
+model Course {
+  courseId      String   @id @default(uuid()) @map("id")
+  courseName    String   @db.VarChar(255)
+  totalLectures Int      @default(0)
+  compulsory    Boolean  @default(true)
+  semesterId    String   @db.VarChar(255)
+  semester      Semester @relation(fields: [semesterId], references: [semesterId])
+  // teachedBy     TeachersOnCourse[]
+  // attendance    Attendance[]
+  // announcement  Announcement[]
+
+  @@index([semesterId])
 }

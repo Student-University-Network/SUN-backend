@@ -14,7 +14,7 @@ import log from '@/utils/logger';
 
 export async function getProfileHandler(req: Request, res: Response) {
 	const userProfile = await getUserProfile(req.user?.User.id!);
-	log.debug(userProfile);
+
 	res.status(HttpStatusCode.OK).json({
 		status: Status.SUCCESS,
 		data: userProfile,

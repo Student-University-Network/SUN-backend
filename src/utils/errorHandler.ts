@@ -17,7 +17,10 @@ const errorHandler = (
 			type: err.name,
 			statusCode: err.statusCode,
 			message: err.message,
-			stack: config.env === 'development' ? err.stack : undefined,
+			stack:
+				config.env === 'development'
+					? `${err.stack?.toString()}`
+					: undefined,
 		});
 	}
 
@@ -25,7 +28,10 @@ const errorHandler = (
 		type: err.name,
 		statusCode: 500,
 		message: err.message,
-		stack: config.env === 'development' ? err.stack : undefined,
+		stack:
+			config.env === 'development'
+				? `${err.stack?.toString()}`
+				: undefined,
 	});
 	next(err);
 };
