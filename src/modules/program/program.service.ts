@@ -33,6 +33,7 @@ export async function getProgramDetails(
 					courses: true,
 				},
 			},
+			batches: true,
 		},
 	});
 
@@ -133,6 +134,7 @@ export async function updateProgram(
 						courses: true,
 					},
 				},
+				batches: true,
 			},
 		});
 

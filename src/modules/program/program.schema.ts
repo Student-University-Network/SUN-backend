@@ -11,7 +11,7 @@ export const createProgramSchema = z.object({
 		.object({
 			programName: z
 				.string()
-				.min(8, '8 character program name is required'),
+				.min(4, '4 character program name is required'),
 			duration: z.number().int().positive({
 				message: 'Atleast 1 semester duration is required',
 			}),
@@ -40,7 +40,7 @@ export const createProgramSchema = z.object({
 		.refine(
 			(data) => data.semesters.length === data.duration,
 			(data) => ({
-				message: `Only ${data.semesters.length} semesters are provided for duration of ${data.duration} semesters.`,
+				message: `${data.semesters.length} semesters are provided for duration of ${data.duration} semesters.`,
 			}),
 		),
 });
@@ -52,7 +52,7 @@ export const updateProgramSchema = z.object({
 		programId: z.string(),
 		programName: z
 			.string()
-			.min(8, '8 character program name is required')
+			.min(4, '4 character program name is required')
 			.optional(),
 		duration: z
 			.number()
