@@ -1,5 +1,10 @@
 import { HttpStatusCode } from '@/constants/HttpStatusCodes';
-import { loginInput, registerInput } from '@/modules/auth/auth.schema';
+import {
+	loginInput,
+	registerBatchInput,
+	registerInput,
+	UsersBatch,
+} from '@/modules/auth/auth.schema';
 import { ApiError } from '@/utils/ApiError';
 import { db } from '@/utils/database';
 import log from '@/utils/logger';
@@ -7,6 +12,7 @@ import argon2 from 'argon2';
 import config from '@/config';
 import jwt from 'jsonwebtoken';
 import { Role, User } from '@prisma/client';
+import { parseCSV, toCSV } from '@/utils/fileUploads';
 
 export async function createUser({
 	email,
@@ -14,16 +20,15 @@ export async function createUser({
 	password,
 	firstName,
 	lastName,
+	role = Role.STUDENT,
+	academicDetails,
 	...rest
 }: registerInput) {
-	//
-	log.debug('Checking if user already exists');
 	const userExists = await db.userLoginData.findUnique({
 		where: {
 			username,
 		},
 	});
-
 	if (userExists) {
 		throw new ApiError(
 			'BAD REQUEST',
@@ -31,30 +36,22 @@ export async function createUser({
 			'User already exists with that username',
 		);
 	}
-
-	log.debug('Hashing the password');
 	const hash = await argon2.hash(password);
 
-	// Create record with hashed password
-	log.debug('Creating user record in the database');
 	const user = await db.user.create({
-		data: {
-			...rest,
-			userLoginData: {
-				create: {
-					email,
-					username,
-					password: hash,
-				},
-			},
-			profile: {
-				create: {
-					firstName,
-					lastName,
-				},
-			},
-		},
+		data: await createNewUserObject(
+			firstName,
+			lastName,
+			username,
+			email,
+			hash,
+			role,
+			academicDetails,
+			{},
+			db,
+		),
 		select: {
+			role: true,
 			userLoginData: {
 				select: {
 					email: true,
@@ -72,10 +69,49 @@ export async function createUser({
 			'User cannot be created!',
 		);
 	}
-
-	log.debug('User created successfully!');
-
 	return { ...user };
+}
+
+export async function createBatchUsers(
+	body: registerBatchInput,
+	usersFile: Express.Multer.File,
+) {
+	const users: Array<UsersBatch> = parseCSV(usersFile, ',').map((row) => {
+		return {
+			firstName: row.firstName,
+			lastName: row.lastName,
+			username: row.username,
+			password: row.firstName + '@' + Math.round(Math.random() * 1e4),
+			email: row.email,
+			role: row.role,
+		};
+	});
+	await db.$transaction(async (tx) => {
+		for (const usr of users) {
+			const role: string = usr.role;
+			await tx.user.create({
+				data: await createNewUserObject(
+					usr.firstName,
+					usr.lastName,
+					usr.username,
+					usr.email,
+					await argon2.hash(usr.password),
+					Role[role as keyof typeof Role],
+					body,
+					{},
+					tx,
+				),
+			});
+		}
+	});
+	return toCSV(
+		[
+			['firstName', 'lastName', 'username', 'password', 'email', 'role'],
+			['string', 'string', 'string', 'string', 'string', 'string'],
+		],
+		users,
+		',',
+	);
 }
 
 export async function login({ username, password }: loginInput) {
@@ -180,5 +216,70 @@ export async function generateAccessToken(token: string) {
 		return accessToken;
 	} catch (e: any) {
 		return undefined;
+	}
+}
+
+async function createNewUserObject(
+	firstName: string,
+	lastName: string,
+	username: string,
+	email: string,
+	hash: string,
+	role: Role,
+	academicDetails: any,
+	rest: any,
+	dbc: any,
+) {
+	let normalData = {
+		...rest,
+		role,
+		userLoginData: {
+			create: {
+				email,
+				username,
+				password: hash,
+			},
+		},
+		profile: {
+			create: {
+				firstName,
+				lastName,
+			},
+		},
+	};
+	if (academicDetails && academicDetails !== null) {
+		const batch = await dbc.batch.findFirst({
+			where: {
+				id: academicDetails.batchId,
+				programId: academicDetails.programId,
+			},
+			include: {
+				students: true,
+			},
+		});
+		if (batch === null) {
+			throw new ApiError(
+				'BAD REQUEST',
+				HttpStatusCode.BAD_REQUEST,
+				'Batch or program doesnt exist',
+			);
+		}
+		console.log(batch.students.length + 1 || 0);
+		return {
+			...normalData,
+			academicDetails: {
+				create: {
+					rollNo: batch.students.length + 1 || 0,
+					batch: {
+						connect: { id: batch?.id },
+					},
+					program: {
+						connect: { programId: academicDetails.programId },
+					},
+				},
+			},
+		};
+	} else {
+		return { ...normalData };
 	}
 }

@@ -1,10 +1,15 @@
 import { HttpStatusCode } from '@/constants/HttpStatusCodes';
 import { Status } from '@/constants/Status';
-import { loginInput, registerInput } from '@/modules/auth/auth.schema';
+import {
+	loginInput,
+	registerBatchInput,
+	registerInput,
+} from '@/modules/auth/auth.schema';
 import {
 	createUser,
 	login,
 	generateAccessToken,
+	createBatchUsers,
 } from '@/modules/auth/auth.service';
 import log from '@/utils/logger';
 import { Request, Response } from 'express';
@@ -38,6 +43,26 @@ export async function registerHandler(
 		message: 'User created successfully!',
 		user,
 	});
+}
+
+export async function registerBatchHandler(
+	req: Request<{}, {}, registerBatchInput>,
+	res: Response,
+) {
+	const usersFile = req.file;
+	if (!usersFile)
+		res.status(HttpStatusCode.BAD_REQUEST).json({
+			status: Status.ERROR,
+			message: 'No CSV file uploaded',
+		});
+
+	const usersCsv = await createBatchUsers(req.body, usersFile!);
+
+	res.writeHead(200, [
+		['Content-Type', 'text/csv'],
+		['Content-Disposition', "attachment; filename='usersFile.csv'"],
+	]);
+	res.end(usersCsv);
 }
 
 export async function refreshTokenHandler(req: Request, res: Response) {

@@ -8,7 +8,7 @@ let envConfig;
 
 switch (stage) {
 	case 'production':
-		envConfig = require('./prod').defaut;
+		envConfig = require('./prod').default;
 		break;
 	case 'testing':
 		envConfig = require('./testing').default;
@@ -21,6 +21,7 @@ switch (stage) {
 type Config = {
 	env: string;
 	port: number;
+	fileStoreLocation: string;
 	logger: {
 		level: string;
 	};
@@ -45,6 +46,7 @@ export default merge(
 		stage,
 		env: process.env.NODE_ENV,
 		port: 5000,
+		fileStoreLocation: process.env.FILE_STORE_LOCATION,
 		logger: {
 			level: 'info',
 		},
