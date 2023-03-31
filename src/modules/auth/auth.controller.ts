@@ -49,14 +49,7 @@ export async function registerBatchHandler(
 	req: Request<{}, {}, registerBatchInput>,
 	res: Response,
 ) {
-	const usersFile = req.file;
-	if (!usersFile)
-		res.status(HttpStatusCode.BAD_REQUEST).json({
-			status: Status.ERROR,
-			message: 'No CSV file uploaded',
-		});
-
-	const usersCsv = await createBatchUsers(req.body, usersFile!);
+	const usersCsv = await createBatchUsers(req.body);
 
 	res.writeHead(200, [
 		['Content-Type', 'text/csv'],

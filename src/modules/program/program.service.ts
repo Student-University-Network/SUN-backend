@@ -6,11 +6,9 @@ import {
 } from '@/modules/program/program.schema';
 import { ApiError } from '@/utils/ApiError';
 import { db } from '@/utils/database';
-import log from '@/utils/logger';
 import { Role } from '@prisma/client';
 
 export async function getProgramList() {
-	// TODO : add pagination to reduce response size as database scales
 	const programsList = await db.program.findMany();
 	return programsList;
 }

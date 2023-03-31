@@ -64,9 +64,9 @@ model UserLoginData {
 model AcademicDetails {
   userId    String  @id @default(uuid())
   User      User    @relation(fields: [userId], references: [id])
-  rollNo    Int     @unique
-  batchId   String
-  batch     Batch   @relation(fields: [batchId], references: [id])
+  rollNo    Int?     @unique
+  batchId   String?
+  batch     Batch?   @relation(fields: [batchId], references: [id])
   programId String
   program   Program @relation(fields: [programId], references: [programId])
 

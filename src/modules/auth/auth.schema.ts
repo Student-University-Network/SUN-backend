@@ -28,7 +28,7 @@ export const registerSchema = object({
 		role: nativeEnum(Role).default(Role.STUDENT).optional(),
 		academicDetails: object({
 			programId: string(),
-			batchId: string(),
+			// batchId: string(),
 		}).optional(),
 	}),
 });
@@ -37,8 +37,18 @@ export type registerInput = TypeOf<typeof registerSchema>['body'];
 
 export const registerBatchSchema = object({
 	body: object({
-		programId: string().optional(),
-		batchId: string().optional(),
+		users: z.array(
+			z.object({
+				firstName: string(),
+				lastName: string(),
+				email: string(),
+				username: string().optional(),
+				password: string().optional(),
+				role: nativeEnum(Role).default(Role.STUDENT),
+				programId: string().optional(),
+				programName: string().optional(),
+			}),
+		),
 	}),
 });
 

@@ -46,7 +46,7 @@ export async function createUser({
 			email,
 			hash,
 			role,
-			academicDetails,
+			academicDetails?.programId || '',
 			{},
 			db,
 		),
@@ -72,18 +72,16 @@ export async function createUser({
 	return { ...user };
 }
 
-export async function createBatchUsers(
-	body: registerBatchInput,
-	usersFile: Express.Multer.File,
-) {
-	const users: Array<UsersBatch> = parseCSV(usersFile, ',').map((row) => {
+export async function createBatchUsers(body: registerBatchInput) {
+	const users = body.users.map((row) => {
 		return {
-			firstName: row.firstName,
-			lastName: row.lastName,
-			username: row.username,
-			password: row.firstName + '@' + Math.round(Math.random() * 1e4),
-			email: row.email,
-			role: row.role,
+			...row,
+			username:
+				row.username ||
+				row.firstName + row.lastName + Math.round(Math.random() * 1e3),
+			password:
+				row.password ||
+				row.firstName + '@' + Math.round(Math.random() * 1e4),
 		};
 	});
 	await db.$transaction(async (tx) => {
@@ -97,7 +95,7 @@ export async function createBatchUsers(
 					usr.email,
 					await argon2.hash(usr.password),
 					Role[role as keyof typeof Role],
-					body,
+					usr.programId || '',
 					{},
 					tx,
 				),
@@ -106,7 +104,7 @@ export async function createBatchUsers(
 	});
 	return toCSV(
 		[
-			['firstName', 'lastName', 'username', 'password', 'email', 'role'],
+			['firstName', 'lastName', 'email', 'role', 'username', 'password'],
 			['string', 'string', 'string', 'string', 'string', 'string'],
 		],
 		users,
@@ -226,7 +224,7 @@ async function createNewUserObject(
 	email: string,
 	hash: string,
 	role: Role,
-	academicDetails: any,
+	programId: string,
 	rest: any,
 	dbc: any,
 ) {
@@ -247,34 +245,13 @@ async function createNewUserObject(
 			},
 		},
 	};
-	if (academicDetails && academicDetails !== null) {
-		const batch = await dbc.batch.findFirst({
-			where: {
-				id: academicDetails.batchId,
-				programId: academicDetails.programId,
-			},
-			include: {
-				students: true,
-			},
-		});
-		if (batch === null) {
-			throw new ApiError(
-				'BAD REQUEST',
-				HttpStatusCode.BAD_REQUEST,
-				'Batch or program doesnt exist',
-			);
-		}
-		console.log(batch.students.length + 1 || 0);
+	if (programId && programId !== '') {
 		return {
 			...normalData,
 			academicDetails: {
 				create: {
-					rollNo: batch.students.length + 1 || 0,
-					batch: {
-						connect: { id: batch?.id },
-					},
 					program: {
-						connect: { programId: academicDetails.programId },
+						connect: { programId },
 					},
 				},
 			},

@@ -11,7 +11,6 @@ import {
 	registerBatchSchema,
 	registerSchema,
 } from '@/modules/auth/auth.schema';
-import upload from '@/utils/fileUploads';
 import validateRequest from '@/utils/validateRequest';
 import validateUserRole from '@/utils/validateUserRole';
 import { Role } from '@prisma/client';
@@ -32,7 +31,6 @@ router.post(
 	verifyJWT,
 	validateRequest(registerBatchSchema),
 	validateUserRole([Role.ADMIN]),
-	upload.single('batchUsersFile'),
 	registerBatchHandler,
 );
 router.get('/refreshToken', refreshTokenHandler);

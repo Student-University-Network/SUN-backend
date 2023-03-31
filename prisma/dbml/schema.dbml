@@ -35,9 +35,9 @@ Table UserLoginData {
 Table AcademicDetails {
   userId String [pk]
   User User [not null]
-  rollNo Int [unique, not null]
-  batchId String [not null]
-  batch Batch [not null]
+  rollNo Int [unique]
+  batchId String
+  batch Batch
   programId String [not null]
   program Program [not null]
 }

@@ -18,14 +18,20 @@ async function seed() {
 					username: config.admin.username,
 				},
 			},
+			profile: {
+				create: {
+					firstName: 'Admin',
+					lastName: 'User',
+				},
+			},
 		},
 	});
-	const adminProfile = await db.profile.create({
-		data: {
-			firstName: 'Admin',
-			lastName: 'User',
-		},
-	});
+	// const adminProfile = await db.profile.create({
+	// 	data: {
+	// 		firstName: 'Admin',
+	// 		lastName: 'User',
+	// 	},
+	// });
 	log.debug(admin);
 }
 

@@ -52,7 +52,7 @@ export default merge(
 		},
 		admin: {
 			username: 'admin',
-			password: 'admin',
+			password: 'Admin@1234',
 			email: 'admin@admin.com',
 		},
 		api: {
