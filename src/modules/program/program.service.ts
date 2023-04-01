@@ -31,11 +31,21 @@ export async function getProgramDetails(
 					courses: true,
 				},
 			},
-			batches: true,
+			batches: {
+				include: {
+					students: true,
+				},
+			},
 		},
 	});
 
-	return progamDetails;
+	return {
+		...progamDetails,
+		batches: progamDetails?.batches.map((b) => ({
+			...b,
+			students: b.students.length,
+		})),
+	};
 }
 
 export async function createNewProgram(prg: createProgramInput) {

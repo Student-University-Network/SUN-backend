@@ -30,3 +30,18 @@ export async function getUsersList() {
 		}),
 	};
 }
+
+export async function getUserDetails(userId: string) {
+	// TODO : add Faculty and students role handling
+	const user = await db.user.findUnique({
+		where: {
+			id: userId,
+		},
+		include: {
+			profile: true,
+			academicDetails: true,
+		},
+	});
+
+	return user;
+}

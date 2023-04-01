@@ -107,7 +107,14 @@ export async function createBatchUsers(body: registerBatchInput) {
 			['firstName', 'lastName', 'email', 'role', 'username', 'password'],
 			['string', 'string', 'string', 'string', 'string', 'string'],
 		],
-		users,
+		users.map((usr) => ({
+			firstName: usr.firstName,
+			lastName: usr.lastName,
+			email: usr.email,
+			role: usr.role,
+			username: usr.username,
+			password: usr.password,
+		})),
 		',',
 	);
 }
