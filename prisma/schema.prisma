@@ -128,11 +128,11 @@ model Course {
 
 model TeachersOnCourse {
   courseId    String
-  course      Course @relation(fields: [courseId], references: [courseId])
-  professorId String @db.VarChar(255)
-  professor   User   @relation(fields: [professorId], references: [id])
+  course      Course  @relation(fields: [courseId], references: [courseId])
+  professorId String? @db.VarChar(255)
+  professor   User?   @relation(fields: [professorId], references: [id])
   batchId     String
-  forBatch    Batch  @relation(fields: [batchId], references: [id])
+  forBatch    Batch   @relation(fields: [batchId], references: [id])
 
   @@id([courseId, batchId])
   @@index([courseId])

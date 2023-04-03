@@ -87,8 +87,8 @@ Table Course {
 Table TeachersOnCourse {
   courseId String [not null]
   course Course [not null]
-  professorId String [not null]
-  professor User [not null]
+  professorId String
+  professor User
   batchId String [not null]
   forBatch Batch [not null]
 

@@ -4,12 +4,19 @@ import {
 	getUsersListHandler,
 	getUserDetailsHandler,
 	assignProfessorHandler,
+	getBatchDetailsHandler,
+	saveBatchDetailsHandler,
 } from '@/modules/admin/admin.controller';
 
 import { Role } from '@prisma/client';
 import validateUserRole from '@/utils/validateUserRole';
 import validateRequest from '@/utils/validateRequest';
-import { AssignProfessorSchema } from '@/modules/admin/admin.schema';
+import {
+	AssignProfessorSchema,
+	getBatchSchema,
+	SaveBatchDetailsSchema,
+} from '@/modules/admin/admin.schema';
+import { saveBatchDetails } from '@/modules/admin/admin.service';
 
 const router = Router();
 
@@ -33,6 +40,22 @@ router.post(
 	validateUserRole([Role.ADMIN]),
 	validateRequest(AssignProfessorSchema),
 	assignProfessorHandler,
+);
+
+router.get(
+	'/batch/:batchId',
+	verifyJWT,
+	validateUserRole([Role.ADMIN, Role.FACULTY]),
+	validateRequest(getBatchSchema),
+	getBatchDetailsHandler,
+);
+
+router.post(
+	'/batch',
+	verifyJWT,
+	validateUserRole([Role.ADMIN]),
+	validateRequest(SaveBatchDetailsSchema),
+	saveBatchDetailsHandler,
 );
 
 export default router;

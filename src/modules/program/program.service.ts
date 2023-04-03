@@ -49,30 +49,51 @@ export async function getProgramDetails(
 }
 
 export async function createNewProgram(prg: createProgramInput) {
-	const newProgram = await db.program.create({
-		data: {
-			programName: prg.programName,
-			duration: prg.duration,
-			tag: prg.tag,
-			startYear: prg.startYear,
-			endYear: prg.endYear,
-			semesters: {
-				create: prg.semesters.map((sem) => {
-					return {
-						semesterName: sem.semesterName,
-						order: sem.order,
-						courses: {
-							create: sem.courses.map((crs) => crs),
-						},
-					};
-				}),
-			},
-			batches: {
-				createMany: {
-					data: prg.batches,
+	const newProgram = await db.$transaction(async (tx) => {
+		const program = await tx.program.create({
+			data: {
+				programName: prg.programName,
+				duration: prg.duration,
+				tag: prg.tag,
+				startYear: prg.startYear,
+				endYear: prg.endYear,
+				semesters: {
+					create: prg.semesters.map((sem) => {
+						return {
+							semesterName: sem.semesterName,
+							order: sem.order,
+							courses: {
+								create: sem.courses.map((crs) => crs),
+							},
+						};
+					}),
+				},
+				batches: {
+					createMany: {
+						data: prg.batches,
+					},
 				},
 			},
-		},
+			include: {
+				semesters: {
+					select: {
+						courses: true,
+					},
+				},
+				batches: true,
+			},
+		});
+
+		for (let crs of program.semesters[prg.currentSemester].courses) {
+			await tx.teachersOnCourse.createMany({
+				data: program.batches.map((btch) => ({
+					batchId: btch.id,
+					courseId: crs.courseId,
+				})),
+			});
+		}
+
+		return program;
 	});
 
 	return newProgram;
@@ -168,38 +189,4 @@ async function isStudentEnrolledIn({ User }: JWTPayload, programId: String) {
 			);
 		}
 	}
-}
-
-export async function getBatchDetails(batchId: string) {
-	const batch = await db.batch.findUnique({
-		where: {
-			id: batchId,
-		},
-	});
-	const teacherOnCourses = await db.teachersOnCourse.findMany({
-		where: {
-			batchId: batchId,
-		},
-		include: {
-			course: true,
-			professor: {
-				include: {
-					profile: true,
-				},
-			},
-		},
-	});
-
-	return {
-		...batch,
-		courses: teacherOnCourses.map((toc) => ({
-			courseId: toc.courseId,
-			courseName: toc.course.courseName,
-			professor: {
-				id: toc.professorId,
-				firstName: toc.professor.profile?.firstName,
-				lastName: toc.professor.profile?.lastName,
-			},
-		})),
-	};
 }

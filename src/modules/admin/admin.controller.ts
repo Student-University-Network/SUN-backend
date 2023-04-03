@@ -5,11 +5,15 @@ import {
 	getUsersList,
 	getUserDetails,
 	assignProfessor,
+	getBatchDetails,
+	saveBatchDetails,
 } from '@/modules/admin/admin.service';
 import {
 	AssignProfessorInput,
 	AssignProfessorSchema,
 	GetUserDetailsInput,
+	getBatchInput,
+	saveBatchDetailsInput,
 } from '@/modules/admin/admin.schema';
 
 export async function getUsersListHandler(req: Request, res: Response) {
@@ -43,5 +47,31 @@ export async function assignProfessorHandler(
 	res.status(HttpStatusCode.OK).json({
 		status: Status.SUCCESS,
 		data: teacherOnCourse,
+	});
+}
+
+export async function getBatchDetailsHandler(
+	req: Request<getBatchInput>,
+	res: Response,
+) {
+	const { batchId } = req.params;
+
+	const batchDetails = await getBatchDetails(batchId);
+
+	res.status(HttpStatusCode.OK).json({
+		status: Status.SUCCESS,
+		data: batchDetails,
+	});
+}
+
+export async function saveBatchDetailsHandler(
+	req: Request<{}, {}, saveBatchDetailsInput>,
+	res: Response,
+) {
+	const batchDetails = await saveBatchDetails(req.body);
+
+	res.status(HttpStatusCode.OK).json({
+		status: Status.SUCCESS,
+		data: batchDetails,
 	});
 }

@@ -1,6 +1,5 @@
 import {
 	createProgramInput,
-	getBatchInput,
 	getProgramInput,
 	updateProgramInput,
 } from '@/modules/program/program.schema';
@@ -12,7 +11,6 @@ import {
 	getProgramDetails,
 	getProgramList,
 	updateProgram,
-	getBatchDetails,
 } from '@/modules/program/program.service';
 
 export async function getProgramHandler(
@@ -63,19 +61,5 @@ export async function updateProgramHandler(
 	res.status(HttpStatusCode.OK).json({
 		status: Status.SUCCESS,
 		data: updatedProgram,
-	});
-}
-
-export async function getBatchDetailsHandler(
-	req: Request<getBatchInput>,
-	res: Response,
-) {
-	const { batchId } = req.params;
-
-	const batchDetails = await getBatchDetails(batchId);
-
-	res.status(HttpStatusCode.OK).json({
-		status: Status.SUCCESS,
-		data: batchDetails,
 	});
 }
