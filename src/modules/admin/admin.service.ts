@@ -1,3 +1,4 @@
+import { AssignProfessorInput } from '@/modules/admin/admin.schema';
 import { db } from '@/utils/database';
 
 export async function getUsersList() {
@@ -44,4 +45,24 @@ export async function getUserDetails(userId: string) {
 	});
 
 	return user;
+}
+
+export async function assignProfessor(payload: AssignProfessorInput) {
+	const { courseId, teacherId, batchId } = payload;
+
+	const teacherOnCourse = await db.teachersOnCourse.upsert({
+		where: {
+			courseId_batchId: { courseId: courseId, batchId: batchId },
+		},
+		update: {
+			professorId: teacherId,
+		},
+		create: {
+			batchId: batchId,
+			courseId: courseId,
+			professorId: teacherId,
+		},
+	});
+
+	return teacherOnCourse;
 }

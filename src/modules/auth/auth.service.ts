@@ -131,6 +131,11 @@ export async function login({ username, password }: loginInput) {
 			User: {
 				include: {
 					profile: true,
+					academicDetails: {
+						select: {
+							programId: true,
+						},
+					},
 				},
 			},
 		},
@@ -170,11 +175,15 @@ export async function login({ username, password }: loginInput) {
 	const refreshToken = await generateJWT(payload, 'refreshToken');
 
 	return {
+		id: userExists.User.id,
+		role: userExists.User.role,
 		username: userExists.username,
+		firstName: userExists.User.profile?.firstName,
+		lastName: userExists.User.profile?.lastName,
+		programId: userExists.User.academicDetails?.programId,
 		accessToken,
 		refreshToken,
 	};
-	// TODO: save the per device session somewhere
 }
 
 export type JWTPayload = {
@@ -206,6 +215,49 @@ async function generateJWT(payload: JWTPayload, type: string) {
 	);
 }
 
+export async function refresh(refreshToken: string) {
+	const accessToken = await generateAccessToken(refreshToken);
+	if (!accessToken)
+		throw new ApiError(
+			'Unauthorized',
+			HttpStatusCode.UNAUTHORIZED,
+			'Unauthorized',
+		);
+	const user = await db.user.findUnique({
+		where: {
+			id: accessToken.userId,
+		},
+		select: {
+			id: true,
+			role: true,
+			userLoginData: {
+				select: {
+					username: true,
+				},
+			},
+			profile: {
+				select: {
+					firstName: true,
+					lastName: true,
+				},
+			},
+			academicDetails: {
+				select: {
+					programId: true,
+				},
+			},
+		},
+	});
+	return {
+		id: user?.id,
+		role: user?.role,
+		...user?.userLoginData,
+		...user?.profile,
+		programId: user?.academicDetails?.programId,
+		accessToken: accessToken.accessToken,
+	};
+}
+
 export async function generateAccessToken(token: string) {
 	try {
 		const valid = jwt.verify(token, config.secrets.refreshToken);
@@ -218,7 +270,7 @@ export async function generateAccessToken(token: string) {
 		};
 		const accessToken = await generateJWT(payload, 'accessToken');
 
-		return accessToken;
+		return { accessToken, userId: isValid.User.id };
 	} catch (e: any) {
 		return undefined;
 	}

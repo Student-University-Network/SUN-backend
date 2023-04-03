@@ -39,6 +39,32 @@ export async function updateUserProfile(
 	return createOrUpdateProfile;
 }
 
+export async function getAcademicDetails(userId: string) {
+	const academicDetails = await db.academicDetails.findUnique({
+		where: {
+			userId: userId,
+		},
+		include: {
+			batch: true,
+			program: {
+				include: {
+					semesters: true,
+				},
+			},
+		},
+	});
+	return {
+		...academicDetails,
+		program: {
+			...academicDetails?.program,
+			currentSemester:
+				academicDetails?.program.semesters[
+					academicDetails.program.currentSemester
+				],
+		},
+	};
+}
+
 export async function updatePassword(
 	userId: string,
 	payload: changePasswordInput,

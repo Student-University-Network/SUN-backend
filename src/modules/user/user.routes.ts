@@ -4,6 +4,7 @@ import {
 	changePasswordHandler,
 	getProfileHandler,
 	updateProfileHandler,
+	getAcademicDetailsHandler,
 } from '@/modules/user/user.controller';
 import {
 	changePasswordSchema,
@@ -14,6 +15,8 @@ import validateRequest from '@/utils/validateRequest';
 const router = Router();
 
 router.get('/profile', verifyJWT, getProfileHandler);
+// ! temp
+router.get('/academic-details', verifyJWT, getAcademicDetailsHandler);
 router.put(
 	'/profile',
 	verifyJWT,

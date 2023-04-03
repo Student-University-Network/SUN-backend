@@ -11,6 +11,7 @@ Table User {
   userLoginDataId String [unique, not null]
   profile Profile
   academicDetails AcademicDetails
+  teachesCourses TeachersOnCourse [not null]
 }
 
 Table Profile {
@@ -46,6 +47,7 @@ Table Batch {
   id String [pk]
   batchName String [not null]
   students AcademicDetails [not null]
+  courses TeachersOnCourse [not null]
   program Program
   programId String
 }
@@ -79,6 +81,20 @@ Table Course {
   compulsory Boolean [not null, default: true]
   semesterId String [not null]
   semester Semester [not null]
+  teachedBy TeachersOnCourse [not null]
+}
+
+Table TeachersOnCourse {
+  courseId String [not null]
+  course Course [not null]
+  professorId String [not null]
+  professor User [not null]
+  batchId String [not null]
+  forBatch Batch [not null]
+
+  indexes {
+    (courseId, batchId) [pk]
+  }
 }
 
 Enum Gender {
@@ -109,3 +125,9 @@ Ref: Batch.programId > Program.programId
 Ref: Semester.programId > Program.programId
 
 Ref: Course.semesterId > Semester.semesterId
+
+Ref: TeachersOnCourse.courseId > Course.courseId
+
+Ref: TeachersOnCourse.professorId > User.id
+
+Ref: TeachersOnCourse.batchId > Batch.id

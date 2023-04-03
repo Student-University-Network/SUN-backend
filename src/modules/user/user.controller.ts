@@ -5,6 +5,7 @@ import {
 	updateProfileInput,
 } from '@/modules/user/user.schema';
 import {
+	getAcademicDetails,
 	getUserProfile,
 	updatePassword,
 	updateUserProfile,
@@ -32,6 +33,15 @@ export async function updateProfileHandler(
 	res.status(HttpStatusCode.CREATED).json({
 		status: Status.SUCCESS,
 		data: updatedProfile,
+	});
+}
+
+export async function getAcademicDetailsHandler(req: Request, res: Response) {
+	const academicDetails = await getAcademicDetails(req.user?.User.id!);
+
+	res.status(HttpStatusCode.OK).json({
+		status: Status.SUCCESS,
+		data: academicDetails,
 	});
 }
 

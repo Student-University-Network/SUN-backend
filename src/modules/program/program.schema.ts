@@ -96,3 +96,11 @@ export const updateProgramSchema = z.object({
 });
 
 export type updateProgramInput = z.TypeOf<typeof updateProgramSchema>['body'];
+
+export const getBatchSchema = z.object({
+	params: z.object({
+		batchId: z.string(),
+	}),
+});
+
+export type getBatchInput = z.TypeOf<typeof getBatchSchema>['params'];

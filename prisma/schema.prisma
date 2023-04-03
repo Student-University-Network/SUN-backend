@@ -29,15 +29,15 @@ enum Role {
 }
 
 model User {
-  id              String           @id @default(uuid())
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  role            Role             @default(STUDENT)
-  userLoginData   UserLoginData    @relation(fields: [userLoginDataId], references: [id])
-  userLoginDataId String           @unique
+  id              String             @id @default(uuid())
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  role            Role               @default(STUDENT)
+  userLoginData   UserLoginData      @relation(fields: [userLoginDataId], references: [id])
+  userLoginDataId String             @unique
   profile         Profile?
   academicDetails AcademicDetails?
-  // teachesCourses  TeachersOnCourse[]
+  teachesCourses  TeachersOnCourse[]
 }
 
 model Profile {
@@ -64,9 +64,9 @@ model UserLoginData {
 model AcademicDetails {
   userId    String  @id @default(uuid())
   User      User    @relation(fields: [userId], references: [id])
-  rollNo    Int?     @unique
+  rollNo    Int?    @unique
   batchId   String?
-  batch     Batch?   @relation(fields: [batchId], references: [id])
+  batch     Batch?  @relation(fields: [batchId], references: [id])
   programId String
   program   Program @relation(fields: [programId], references: [programId])
 
@@ -76,11 +76,11 @@ model AcademicDetails {
 }
 
 model Batch {
-  id        String            @id @default(uuid())
-  batchName String            @db.VarChar(255)
+  id        String             @id @default(uuid())
+  batchName String             @db.VarChar(255)
   students  AcademicDetails[]
-  // courses   TeachersOnCourse[]
-  program   Program?          @relation(fields: [programId], references: [programId])
+  courses   TeachersOnCourse[]
+  program   Program?           @relation(fields: [programId], references: [programId])
   programId String?
   // timetable Timetable?
 
@@ -113,15 +113,55 @@ model Semester {
 }
 
 model Course {
-  courseId      String   @id @default(uuid()) @map("id")
-  courseName    String   @db.VarChar(255)
-  totalLectures Int      @default(0)
-  compulsory    Boolean  @default(true)
-  semesterId    String   @db.VarChar(255)
-  semester      Semester @relation(fields: [semesterId], references: [semesterId])
-  // teachedBy     TeachersOnCourse[]
+  courseId      String             @id @default(uuid()) @map("id")
+  courseName    String             @db.VarChar(255)
+  totalLectures Int                @default(0)
+  compulsory    Boolean            @default(true)
+  semesterId    String             @db.VarChar(255)
+  semester      Semester           @relation(fields: [semesterId], references: [semesterId])
+  teachedBy     TeachersOnCourse[]
   // attendance    Attendance[]
   // announcement  Announcement[]
 
   @@index([semesterId])
 }
+
+model TeachersOnCourse {
+  courseId    String
+  course      Course @relation(fields: [courseId], references: [courseId])
+  professorId String @db.VarChar(255)
+  professor   User   @relation(fields: [professorId], references: [id])
+  batchId     String
+  forBatch    Batch  @relation(fields: [batchId], references: [id])
+
+  @@id([courseId, batchId])
+  @@index([courseId])
+  @@index([professorId])
+  @@index([batchId])
+}
+
+// model Attendance {
+//   userId   String @id @db.VarChar(255)
+//   courseId String @db.VarChar(255)
+//   attended Int    @default(0)
+//   student  User   @relation(fields: [userId], references: [id])
+//   course   Course @relation(fields: [courseId], references: [id])
+// }
+
+// model Timetable {
+//   id            String @id @db.VarChar(255)
+//   timetableFile String
+//   batch         Batch  @relation(fields: [id], references: [id])
+// }
+
+// model Announcement {
+//   id        String   @id @db.VarChar(255)
+//   title     String
+//   content   String
+//   userId    String?
+//   announcer User?    @relation(fields: [userId], references: [id])
+//   programId String?
+//   program   Program? @relation(fields: [programId], references: [id])
+//   courseId  String?
+//   course    Course?  @relation(fields: [courseId], references: [id])
+// }

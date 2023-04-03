@@ -169,3 +169,37 @@ async function isStudentEnrolledIn({ User }: JWTPayload, programId: String) {
 		}
 	}
 }
+
+export async function getBatchDetails(batchId: string) {
+	const batch = await db.batch.findUnique({
+		where: {
+			id: batchId,
+		},
+	});
+	const teacherOnCourses = await db.teachersOnCourse.findMany({
+		where: {
+			batchId: batchId,
+		},
+		include: {
+			course: true,
+			professor: {
+				include: {
+					profile: true,
+				},
+			},
+		},
+	});
+
+	return {
+		...batch,
+		courses: teacherOnCourses.map((toc) => ({
+			courseId: toc.courseId,
+			courseName: toc.course.courseName,
+			professor: {
+				id: toc.professorId,
+				firstName: toc.professor.profile?.firstName,
+				lastName: toc.professor.profile?.lastName,
+			},
+		})),
+	};
+}

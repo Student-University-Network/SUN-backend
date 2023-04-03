@@ -4,11 +4,13 @@ import {
 	getProgramHandler,
 	getProgramListHandler,
 	updateProgramHandler,
+	getBatchDetailsHandler,
 } from '@/modules/program/program.controller';
 import {
 	createProgramSchema,
 	getProgramSchema,
 	updateProgramSchema,
+	getBatchSchema,
 } from '@/modules/program/program.schema';
 import validateRequest from '@/utils/validateRequest';
 import validateUserRole from '@/utils/validateUserRole';
@@ -48,6 +50,14 @@ router.put(
 	validateUserRole([Role.ADMIN, Role.STUDENT]),
 	validateRequest(updateProgramSchema),
 	updateProgramHandler,
+);
+
+router.get(
+	'/batch/:batchId',
+	verifyJWT,
+	validateUserRole([Role.ADMIN, Role.FACULTY]),
+	validateRequest(getBatchSchema),
+	getBatchDetailsHandler,
 );
 
 export default router;

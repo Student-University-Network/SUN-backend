@@ -9,3 +9,15 @@ export const GetUserDetailsSchema = z.object({
 export type GetUserDetailsInput = z.TypeOf<
 	typeof GetUserDetailsSchema
 >['params'];
+
+export const AssignProfessorSchema = z.object({
+	body: z.object({
+		courseId: z.string(),
+		batchId: z.string(),
+		teacherId: z.string(),
+	}),
+});
+
+export type AssignProfessorInput = z.TypeOf<
+	typeof AssignProfessorSchema
+>['body'];
