@@ -13,6 +13,7 @@ import config from '@/config';
 import jwt from 'jsonwebtoken';
 import { Role, User } from '@prisma/client';
 import { parseCSV, toCSV } from '@/utils/fileUploads';
+import { prismaOperation } from '@/utils/errorHandler';
 
 export async function createUser({
 	email,
@@ -84,24 +85,27 @@ export async function createBatchUsers(body: registerBatchInput) {
 				row.firstName + '@' + Math.round(Math.random() * 1e4),
 		};
 	});
-	await db.$transaction(async (tx) => {
-		for (const usr of users) {
-			const role: string = usr.role;
-			await tx.user.create({
-				data: await createNewUserObject(
-					usr.firstName,
-					usr.lastName,
-					usr.username,
-					usr.email,
-					await argon2.hash(usr.password),
-					Role[role as keyof typeof Role],
-					usr.programId || '',
-					{},
-					tx,
-				),
-			});
-		}
-	});
+	await prismaOperation(
+		async () =>
+			await db.$transaction(async (tx) => {
+				for (const usr of users) {
+					const role: string = usr.role;
+					await tx.user.create({
+						data: await createNewUserObject(
+							usr.firstName,
+							usr.lastName,
+							usr.username,
+							usr.email,
+							await argon2.hash(usr.password),
+							Role[role as keyof typeof Role],
+							usr.programId || '',
+							{},
+							tx,
+						),
+					});
+				}
+			}),
+	);
 	return toCSV(
 		[
 			['firstName', 'lastName', 'email', 'role', 'username', 'password'],

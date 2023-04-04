@@ -19,7 +19,7 @@ export async function getCoursesList(userId: string) {
 	});
 
 	return {
-		users: coursesList.map((crs) => {
+		courses: coursesList.map((crs) => {
 			return {
 				...crs.course,
 				semesterName: crs.course.semester.semesterName,

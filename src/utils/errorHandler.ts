@@ -2,6 +2,8 @@ import { ApiError } from '@/utils/ApiError';
 import { Request, Response, NextFunction } from 'express';
 import config from '@/config';
 import logger from '@/utils/logger';
+import { Prisma } from '@prisma/client';
+import { HttpStatusCode } from '@/constants/HttpStatusCodes';
 
 const errorHandler = (
 	err: Error,
@@ -34,6 +36,23 @@ const errorHandler = (
 				: undefined,
 	});
 	next(err);
+};
+
+export const prismaOperation = async (operation: () => void) => {
+	try {
+		const result = await operation();
+		return result;
+	} catch (e) {
+		if (e instanceof Prisma.PrismaClientKnownRequestError) {
+			throw new ApiError(
+				'Failed to find resource',
+				HttpStatusCode.BAD_REQUEST,
+				e.message,
+			);
+		} else {
+			throw e;
+		}
+	}
 };
 
 export default errorHandler;

@@ -17,7 +17,7 @@ export async function getProgramDetails(
 	userPayload: JWTPayload,
 	programId: string,
 ) {
-	isStudentEnrolledIn(userPayload, programId);
+	const academicDetails = await isStudentEnrolledIn(userPayload, programId);
 
 	// TODO : Add check for FACULTY if they are assigned to it
 
@@ -45,6 +45,7 @@ export async function getProgramDetails(
 			...b,
 			students: b.students.length,
 		})),
+		batchId: academicDetails?.batchId,
 	};
 }
 
@@ -103,7 +104,7 @@ export async function updateProgram(
 	userPayload: JWTPayload,
 	prg: updateProgramInput,
 ) {
-	isStudentEnrolledIn(userPayload, prg.programId);
+	await isStudentEnrolledIn(userPayload, prg.programId);
 
 	// As multiple records need to be updated with different data we need to use transaction
 	// for atomicity
@@ -188,5 +189,6 @@ async function isStudentEnrolledIn({ User }: JWTPayload, programId: String) {
 				'You don not have perimssion to view requested program details',
 			);
 		}
+		return academicDetails;
 	}
 }
