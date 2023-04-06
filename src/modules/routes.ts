@@ -5,9 +5,11 @@ import adminRoutes from '@/modules/admin/admin.routes';
 import facultyRoutes from '@/modules/faculty/faculty.routes';
 
 import { Router } from 'express';
+import { logRequestInfo } from '@/utils/logger';
 
 const router = Router();
 
+router.use(logRequestInfo);
 router.use('/auth', authRoutes);
 router.use('/user', userRoutes);
 router.use('/program', programRoutes);

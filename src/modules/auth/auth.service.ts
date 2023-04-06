@@ -124,7 +124,6 @@ export async function createBatchUsers(body: registerBatchInput) {
 }
 
 export async function login({ username, password }: loginInput) {
-	log.debug('Check if the user exists');
 	const userExists = await db.userLoginData.findUnique({
 		where: {
 			username,
@@ -152,7 +151,6 @@ export async function login({ username, password }: loginInput) {
 			'Username or password is incorrect', // Not a good idea to tell the user what exactly is incorrect
 		);
 	}
-	log.debug('Verifying password');
 	const isVerified = await argon2.verify(userExists.password, password);
 
 	if (!isVerified) {
@@ -203,8 +201,6 @@ export type JWTPayload = {
 };
 
 async function generateJWT(payload: JWTPayload, type: string) {
-	log.debug('Signing jwt for user %s', payload.User.username);
-
 	return await jwt.sign(
 		payload,
 		type === 'accessToken'

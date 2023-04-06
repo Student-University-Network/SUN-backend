@@ -19,8 +19,6 @@ export async function getProgramDetails(
 ) {
 	const academicDetails = await isStudentEnrolledIn(userPayload, programId);
 
-	// TODO : Add check for FACULTY if they are assigned to it
-
 	const progamDetails = await db.program.findUnique({
 		where: {
 			programId: programId,
@@ -38,9 +36,42 @@ export async function getProgramDetails(
 			},
 		},
 	});
+	let profs: Array<any> = [];
+	for (let crs of progamDetails?.semesters[progamDetails?.currentSemester]
+		?.courses || []) {
+		const professor = await db.teachersOnCourse.findUnique({
+			where: {
+				courseId_batchId: {
+					courseId: crs.courseId,
+					batchId: academicDetails?.batchId || '',
+				},
+			},
+			include: {
+				professor: {
+					include: {
+						profile: true,
+					},
+				},
+			},
+		});
+		if (professor !== null) profs.push(professor);
+	}
 
 	return {
 		...progamDetails,
+		semesters: progamDetails?.semesters.map((sem) => ({
+			...sem,
+			courses: sem.courses.map((crs) => {
+				const p = profs.find((prf) => prf.courseId === crs.courseId);
+				return {
+					...crs,
+					professorId: p?.professorId || null,
+					professorName:
+						`${p?.professor?.profile?.firstName} ${p?.professor?.profile?.lastName}` ||
+						null,
+				};
+			}),
+		})),
 		batches: progamDetails?.batches.map((b) => ({
 			...b,
 			students: b.students.length,
