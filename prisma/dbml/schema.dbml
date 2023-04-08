@@ -50,6 +50,7 @@ Table Batch {
   courses TeachersOnCourse [not null]
   program Program
   programId String
+  timetable Timetable
 }
 
 Table Program {
@@ -97,6 +98,13 @@ Table TeachersOnCourse {
   }
 }
 
+Table Timetable {
+  timetableId String [pk]
+  timetableData Json [not null]
+  batchId String [unique, not null]
+  batch Batch [not null]
+}
+
 Enum Gender {
   MALE
   FEMALE
@@ -131,3 +139,5 @@ Ref: TeachersOnCourse.courseId > Course.courseId
 Ref: TeachersOnCourse.professorId > User.id
 
 Ref: TeachersOnCourse.batchId > Batch.id
+
+Ref: Timetable.batchId - Batch.id

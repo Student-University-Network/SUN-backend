@@ -82,7 +82,7 @@ model Batch {
   courses   TeachersOnCourse[]
   program   Program?           @relation(fields: [programId], references: [programId])
   programId String?
-  // timetable Timetable?
+  timetable Timetable?
 
   @@index([programId])
 }
@@ -148,11 +148,12 @@ model TeachersOnCourse {
 //   course   Course @relation(fields: [courseId], references: [id])
 // }
 
-// model Timetable {
-//   id            String @id @db.VarChar(255)
-//   timetableFile String
-//   batch         Batch  @relation(fields: [id], references: [id])
-// }
+model Timetable {
+  timetableId   String @id @default(uuid())
+  timetableData Json
+  batchId       String @unique
+  batch         Batch  @relation(fields: [batchId], references: [id])
+}
 
 // model Announcement {
 //   id        String   @id @db.VarChar(255)

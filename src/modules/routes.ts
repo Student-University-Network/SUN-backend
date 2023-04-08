@@ -3,6 +3,7 @@ import userRoutes from '@/modules/user/user.routes';
 import programRoutes from '@/modules/program/program.routes';
 import adminRoutes from '@/modules/admin/admin.routes';
 import facultyRoutes from '@/modules/faculty/faculty.routes';
+import timetableRoutes from '@/modules/timetable/timetable.routes';
 
 import { Router } from 'express';
 import { logRequestInfo } from '@/utils/logger';
@@ -15,5 +16,6 @@ router.use('/user', userRoutes);
 router.use('/program', programRoutes);
 router.use('/admin', adminRoutes);
 router.use('/faculty', facultyRoutes);
+router.use('/timetable', timetableRoutes);
 
 export default router;
