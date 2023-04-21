@@ -1,5 +1,11 @@
 import { z } from 'zod';
 
+export enum LectureStatus {
+	SCHEDULED = 'SCHEDULED',
+	COMPLETED = 'COMPLETED',
+	CANCELLED = 'CANCELLED',
+}
+
 export const getTimetableSchema = z.object({
 	params: z.object({
 		batchId: z.string({
@@ -10,6 +16,18 @@ export const getTimetableSchema = z.object({
 
 export type getTimetableInput = z.TypeOf<typeof getTimetableSchema>['params'];
 
+export const setLectureStatusSchema = z.object({
+	body: z.object({
+		batchId: z.string(),
+		lectureId: z.string(),
+		status: z.nativeEnum(LectureStatus),
+	}),
+});
+
+export type setLectureStatusInput = z.TypeOf<
+	typeof setLectureStatusSchema
+>['body'];
+
 export const setTimetableSchema = z.object({
 	body: z.object({
 		batchId: z.string(),
@@ -19,6 +37,7 @@ export const setTimetableSchema = z.object({
 				weekDay: z.number(),
 				lectures: z.array(
 					z.object({
+						id: z.string().optional(),
 						courseId: z.string(),
 						professorId: z.string(),
 						professorName: z.string(),
@@ -31,6 +50,9 @@ export const setTimetableSchema = z.object({
 							hour: z.number(),
 							minute: z.number(),
 						}),
+						status: z
+							.nativeEnum(LectureStatus)
+							.default(LectureStatus.SCHEDULED),
 					}),
 				),
 			}),

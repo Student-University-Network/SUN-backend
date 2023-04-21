@@ -38,6 +38,7 @@ model User {
   profile         Profile?
   academicDetails AcademicDetails?
   teachesCourses  TeachersOnCourse[]
+  attendance      Attendance[]
 }
 
 model Profile {
@@ -120,7 +121,7 @@ model Course {
   semesterId    String             @db.VarChar(255)
   semester      Semester           @relation(fields: [semesterId], references: [semesterId])
   teachedBy     TeachersOnCourse[]
-  // attendance    Attendance[]
+  attendance    Attendance[]
   // announcement  Announcement[]
 
   @@index([semesterId])
@@ -140,13 +141,16 @@ model TeachersOnCourse {
   @@index([batchId])
 }
 
-// model Attendance {
-//   userId   String @id @db.VarChar(255)
-//   courseId String @db.VarChar(255)
-//   attended Int    @default(0)
-//   student  User   @relation(fields: [userId], references: [id])
-//   course   Course @relation(fields: [courseId], references: [id])
-// }
+model Attendance {
+  userId   String @id @db.VarChar(255)
+  courseId String @db.VarChar(255)
+  attended Int    @default(0)
+  student  User   @relation(fields: [userId], references: [id])
+  course   Course @relation(fields: [courseId], references: [courseId])
+
+  @@index([userId])
+  @@index([courseId])
+}
 
 model Timetable {
   timetableId   String @id @default(uuid())

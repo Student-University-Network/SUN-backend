@@ -2,10 +2,12 @@ import { verifyJWT } from '@/modules/auth/auth.middleware';
 import {
 	getFacultyTimetableHandler,
 	getTimetableHandler,
+	setLectureStatusHandler,
 	setTimetableHandler,
 } from '@/modules/timetable/timetable.controller';
 import {
 	getTimetableSchema,
+	setLectureStatusSchema,
 	setTimetableSchema,
 } from '@/modules/timetable/timetable.schema';
 import validateRequest from '@/utils/validateRequest';
@@ -36,6 +38,14 @@ router.post(
 	validateUserRole([Role.ADMIN]),
 	validateRequest(setTimetableSchema),
 	setTimetableHandler,
+);
+
+router.post(
+	'/lecture-status',
+	verifyJWT,
+	validateUserRole([Role.FACULTY]),
+	validateRequest(setLectureStatusSchema),
+	setLectureStatusHandler,
 );
 
 export default router;

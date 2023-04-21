@@ -1,10 +1,12 @@
 import { HttpStatusCode } from '@/constants/HttpStatusCodes';
 import { getCoursesList } from '@/modules/faculty/faculty.service';
-import { setTimetableInput } from '@/modules/timetable/timetable.schema';
+import {
+	LectureStatus,
+	setTimetableInput,
+} from '@/modules/timetable/timetable.schema';
 import { ApiError } from '@/utils/ApiError';
 import { db } from '@/utils/database';
 import log from '@/utils/logger';
-import { Timetable } from '@prisma/client';
 
 export async function getTimetable(batchId: string) {
 	const timetable = await db.timetable.findUnique({
@@ -83,4 +85,40 @@ export async function setTimetable(newTimetable: setTimetableInput) {
 		},
 	});
 	return timetable;
+}
+
+export async function setLectureStatus(
+	status: LectureStatus,
+	lectureId: string,
+	batchId: string,
+) {
+	const timetable = await db.timetable.findUnique({
+		where: {
+			batchId: batchId,
+		},
+	});
+	let timetableData = timetable?.timetableData as setTimetableInput;
+	timetableData = {
+		...timetableData,
+		days: timetableData.days.map((d) => ({
+			...d,
+			lectures: d.lectures.map((l) => {
+				if (l.id === lectureId) {
+					return { ...l, status: status };
+				} else {
+					return l;
+				}
+			}),
+		})),
+	};
+	const newTimetable = await db.timetable.update({
+		where: {
+			batchId: batchId,
+		},
+		data: {
+			batchId: batchId,
+			timetableData: timetableData,
+		},
+	});
+	return newTimetable.timetableData;
 }

@@ -2,11 +2,13 @@ import { HttpStatusCode } from '@/constants/HttpStatusCodes';
 import { Status } from '@/constants/Status';
 import {
 	getTimetableInput,
+	setLectureStatusInput,
 	setTimetableInput,
 } from '@/modules/timetable/timetable.schema';
 import {
 	getFacultyTimetable,
 	getTimetable,
+	setLectureStatus,
 	setTimetable,
 } from '@/modules/timetable/timetable.service';
 import { Request, Response } from 'express';
@@ -43,5 +45,19 @@ export async function getFacultyTimetableHandler(req: Request, res: Response) {
 	res.status(HttpStatusCode.CREATED).json({
 		status: Status.SUCCESS,
 		data: facultyTimetable,
+	});
+}
+
+export async function setLectureStatusHandler(
+	req: Request<{}, {}, setLectureStatusInput>,
+	res: Response,
+) {
+	const { batchId, status: newStatus, lectureId } = req.body;
+
+	const timetable = await setLectureStatus(newStatus, lectureId, batchId);
+
+	res.status(HttpStatusCode.OK).json({
+		status: Status.SUCCESS,
+		data: timetable,
 	});
 }

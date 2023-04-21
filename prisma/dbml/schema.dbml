@@ -12,6 +12,7 @@ Table User {
   profile Profile
   academicDetails AcademicDetails
   teachesCourses TeachersOnCourse [not null]
+  attendance Attendance [not null]
 }
 
 Table Profile {
@@ -83,6 +84,7 @@ Table Course {
   semesterId String [not null]
   semester Semester [not null]
   teachedBy TeachersOnCourse [not null]
+  attendance Attendance [not null]
 }
 
 Table TeachersOnCourse {
@@ -96,6 +98,14 @@ Table TeachersOnCourse {
   indexes {
     (courseId, batchId) [pk]
   }
+}
+
+Table Attendance {
+  userId String [pk]
+  courseId String [not null]
+  attended Int [not null, default: 0]
+  student User [not null]
+  course Course [not null]
 }
 
 Table Timetable {
@@ -139,5 +149,9 @@ Ref: TeachersOnCourse.courseId > Course.courseId
 Ref: TeachersOnCourse.professorId > User.id
 
 Ref: TeachersOnCourse.batchId > Batch.id
+
+Ref: Attendance.userId > User.id
+
+Ref: Attendance.courseId > Course.courseId
 
 Ref: Timetable.batchId - Batch.id
