@@ -22,6 +22,7 @@ type Config = {
 	env: string;
 	port: number;
 	fileStoreLocation: string;
+	fcmToken: string;
 	logger: {
 		level: string;
 	};
@@ -47,6 +48,7 @@ export default merge(
 		env: process.env.NODE_ENV,
 		port: 5000,
 		fileStoreLocation: process.env.FILE_STORE_LOCATION,
+		fcmToken: process.env.FCM_TOKEN,
 		logger: {
 			level: 'info',
 		},

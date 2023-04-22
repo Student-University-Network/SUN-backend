@@ -6,7 +6,9 @@ import {
 } from '@/modules/timetable/timetable.schema';
 import { ApiError } from '@/utils/ApiError';
 import { db } from '@/utils/database';
+import { getMessaging } from '@/utils/firebase';
 import log from '@/utils/logger';
+import config from '@/config';
 
 export async function getTimetable(batchId: string) {
 	const timetable = await db.timetable.findUnique({
@@ -84,6 +86,8 @@ export async function setTimetable(newTimetable: setTimetableInput) {
 			timetableData: newTimetable,
 		},
 	});
+	sendUpdates();
+
 	return timetable;
 }
 
@@ -120,5 +124,22 @@ export async function setLectureStatus(
 			timetableData: timetableData,
 		},
 	});
+	sendUpdates();
 	return newTimetable.timetableData;
+}
+
+function sendUpdates() {
+	getMessaging()
+		.send({
+			data: {
+				event: 'TIMETABLE_UPDATED',
+			},
+			token: config.fcmToken,
+		})
+		.then((response) => {
+			log.debug('Successfully sent message:' + response);
+		})
+		.catch((error) => {
+			log.debug('Error sending message:' + error);
+		});
 }

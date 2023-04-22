@@ -17,3 +17,7 @@ Backend for SUN
 | ACCESS_TOKEN_SECRET  |                JWT SECRET                 |         random 64 bytes string          |
 | REFRESH_TOKEN_SECRET |                JWT SECRET                 |         random 64 bytes string          |
 | ACCESS_TOKEN_EXPIRY  | Access token expriy in seconds or minutes |                  `15m`                  |
+
+```sh
+export GOOGLE_APPLICATION_CREDENTIALS="/path/to/service-account-file.json"
+```
