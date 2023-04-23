@@ -40,6 +40,10 @@ type Config = {
 		refreshToken: string;
 		accessTokenExpiry: string;
 	};
+	attendance: {
+		tokenSecret: string;
+		tokenExpiry: string;
+	};
 };
 
 export default merge(
@@ -68,6 +72,10 @@ export default merge(
 			accessToken: process.env.ACCESS_TOKEN_SECRET,
 			refreshToken: process.env.REFRESH_TOKEN_SECRET,
 			accessTokenExpiry: process.env.ACCESS_TOKEN_EXPIRY,
+		},
+		attendance: {
+			tokenSecret: process.env.ATTENDANCE_TOKEN_SECRET,
+			tokenExpiry: process.env.ATTENDANCE_TOKEN_EXPIRY,
 		},
 	},
 	envConfig,

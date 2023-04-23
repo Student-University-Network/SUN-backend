@@ -95,7 +95,10 @@ export async function createNewProgram(prg: createProgramInput) {
 							semesterName: sem.semesterName,
 							order: sem.order,
 							courses: {
-								create: sem.courses.map((crs) => crs),
+								create: sem.courses.map((crs) => ({
+									...crs,
+									totalLectures: 0,
+								})),
 							},
 						};
 					}),

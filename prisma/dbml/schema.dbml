@@ -101,11 +101,16 @@ Table TeachersOnCourse {
 }
 
 Table Attendance {
-  userId String [pk]
+  userId String [not null]
   courseId String [not null]
-  attended Int [not null, default: 0]
+  attended AttendanceStatus [not null, default: 'ABSENT']
+  lectureId String [not null]
   student User [not null]
   course Course [not null]
+
+  indexes {
+    (userId, courseId, lectureId) [unique]
+  }
 }
 
 Table Timetable {
@@ -126,6 +131,11 @@ Enum Role {
   STAFF
   FACULTY
   STUDENT
+}
+
+Enum AttendanceStatus {
+  PRESENT
+  ABSENT
 }
 
 Ref: User.userLoginDataId - UserLoginData.id

@@ -28,6 +28,11 @@ enum Role {
   STUDENT
 }
 
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+}
+
 model User {
   id              String             @id @default(uuid())
   createdAt       DateTime           @default(now())
@@ -142,12 +147,14 @@ model TeachersOnCourse {
 }
 
 model Attendance {
-  userId   String @id @db.VarChar(255)
-  courseId String @db.VarChar(255)
-  attended Int    @default(0)
-  student  User   @relation(fields: [userId], references: [id])
-  course   Course @relation(fields: [courseId], references: [courseId])
+  userId    String           @db.VarChar(255)
+  courseId  String           @db.VarChar(255)
+  attended  AttendanceStatus @default(ABSENT)
+  lectureId String
+  student   User             @relation(fields: [userId], references: [id])
+  course    Course           @relation(fields: [courseId], references: [courseId])
 
+  @@unique([userId, courseId, lectureId], name: "attendanceId")
   @@index([userId])
   @@index([courseId])
 }
