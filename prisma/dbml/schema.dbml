@@ -100,6 +100,18 @@ Table TeachersOnCourse {
   }
 }
 
+Table AttendanceToken {
+  token String [unique, not null]
+  lectureId String [not null]
+  courseId String [not null]
+  createdAt DateTime [default: `now()`, not null]
+}
+
+Table FirebaseToken {
+  id String [pk]
+  token String [not null]
+}
+
 Table Attendance {
   userId String [not null]
   courseId String [not null]

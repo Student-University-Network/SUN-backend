@@ -15,6 +15,7 @@ export async function getCoursesList(userId: string) {
 					},
 				},
 			},
+			forBatch: true,
 		},
 	});
 
@@ -22,6 +23,8 @@ export async function getCoursesList(userId: string) {
 		courses: coursesList.map((crs) => {
 			return {
 				...crs.course,
+				batchId: crs.batchId,
+				batchName: crs.forBatch.batchName,
 				semesterName: crs.course.semester.semesterName,
 				programName: crs.course.semester.program.programName,
 			};

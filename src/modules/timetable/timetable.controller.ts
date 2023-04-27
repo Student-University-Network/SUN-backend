@@ -4,12 +4,14 @@ import {
 	getTimetableInput,
 	setLectureStatusInput,
 	setTimetableInput,
+	setFirebaseTokenInput,
 } from '@/modules/timetable/timetable.schema';
 import {
 	getFacultyTimetable,
 	getTimetable,
 	setLectureStatus,
 	setTimetable,
+	setFireBaseToken,
 } from '@/modules/timetable/timetable.service';
 import { Request, Response } from 'express';
 
@@ -59,5 +61,18 @@ export async function setLectureStatusHandler(
 	res.status(HttpStatusCode.OK).json({
 		status: Status.SUCCESS,
 		data: timetable,
+	});
+}
+
+export async function setFirebaseTokenHandler(
+	req: Request<{}, {}, setFirebaseTokenInput>,
+	res: Response,
+) {
+	const { token } = req.body;
+
+	await setFireBaseToken(token);
+
+	res.status(HttpStatusCode.OK).json({
+		status: Status.SUCCESS,
 	});
 }

@@ -2,11 +2,13 @@ import { verifyJWT } from '@/modules/auth/auth.middleware';
 import {
 	getFacultyTimetableHandler,
 	getTimetableHandler,
+	setFirebaseTokenHandler,
 	setLectureStatusHandler,
 	setTimetableHandler,
 } from '@/modules/timetable/timetable.controller';
 import {
 	getTimetableSchema,
+	setFirebaseTokenSchema,
 	setLectureStatusSchema,
 	setTimetableSchema,
 } from '@/modules/timetable/timetable.schema';
@@ -46,6 +48,12 @@ router.post(
 	validateUserRole([Role.FACULTY]),
 	validateRequest(setLectureStatusSchema),
 	setLectureStatusHandler,
+);
+
+router.post(
+	'/fcmtoken',
+	validateRequest(setFirebaseTokenSchema),
+	setFirebaseTokenHandler,
 );
 
 export default router;

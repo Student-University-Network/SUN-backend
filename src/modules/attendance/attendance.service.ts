@@ -1,19 +1,19 @@
 import { db } from '@/utils/database';
-import jwt from 'jsonwebtoken';
-import config from '@/config';
+import crypto from 'crypto';
 import { JWTPayload } from '@/modules/auth/auth.service';
 import { AttendanceStatus } from '@prisma/client';
 import { ApiError } from '@/utils/ApiError';
 import { HttpStatusCode } from '@/constants/HttpStatusCodes';
 
 export async function startAttendance(lectureId: string, courseId: string) {
-	const token = await jwt.sign(
-		{ lectureId, courseId },
-		config.attendance.tokenSecret,
-		{
-			expiresIn: config.attendance.tokenExpiry,
+	const token = crypto.randomBytes(4).toString('hex');
+	await db.attendanceToken.create({
+		data: {
+			token,
+			lectureId,
+			courseId,
 		},
-	);
+	});
 	await db.course.update({
 		where: {
 			courseId: courseId,
@@ -29,11 +29,12 @@ export async function startAttendance(lectureId: string, courseId: string) {
 
 export async function markAttendance(payload: JWTPayload, token: string) {
 	const userId = payload.User.id;
-	let isValid: { lectureId: string; courseId: string };
-	try {
-		const valid = jwt.verify(token, config.attendance.tokenSecret);
-		isValid = valid as { lectureId: string; courseId: string };
-	} catch (e) {
+
+	console.log(token);
+	const isValid = await db.attendanceToken.findUnique({
+		where: { token: token },
+	});
+	if (isValid === null) {
 		return {
 			courseId: '',
 			lectureId: '',
@@ -41,7 +42,6 @@ export async function markAttendance(payload: JWTPayload, token: string) {
 			result: AttendanceStatus.ABSENT,
 		};
 	}
-
 	const { courseId, lectureId } = isValid;
 	const myCourses = await db.academicDetails.findUnique({
 		where: {

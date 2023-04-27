@@ -146,6 +146,18 @@ model TeachersOnCourse {
   @@index([batchId])
 }
 
+model AttendanceToken {
+  token     String   @unique
+  lectureId String
+  courseId  String
+  createdAt DateTime @default(now())
+}
+
+model FirebaseToken {
+  id    String @id @default(uuid())
+  token String
+}
+
 model Attendance {
   userId    String           @db.VarChar(255)
   courseId  String           @db.VarChar(255)

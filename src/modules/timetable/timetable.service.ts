@@ -86,7 +86,10 @@ export async function setTimetable(newTimetable: setTimetableInput) {
 			timetableData: newTimetable,
 		},
 	});
-	sendUpdates();
+	const token = await db.firebaseToken.findMany();
+	for (let t of token) {
+		sendUpdates(t.token);
+	}
 
 	return timetable;
 }
@@ -124,17 +127,29 @@ export async function setLectureStatus(
 			timetableData: timetableData,
 		},
 	});
-	sendUpdates();
+	const token = await db.firebaseToken.findMany();
+	for (let t of token) {
+		sendUpdates(t.token);
+	}
 	return newTimetable.timetableData;
 }
 
-function sendUpdates() {
+export async function setFireBaseToken(token: string) {
+	await db.firebaseToken.create({
+		data: {
+			token,
+		},
+	});
+	console.log(token);
+}
+
+function sendUpdates(token: string) {
 	getMessaging()
 		.send({
 			data: {
 				event: 'TIMETABLE_UPDATED',
 			},
-			token: config.fcmToken,
+			token: token,
 		})
 		.then((response) => {
 			log.debug('Successfully sent message:' + response);

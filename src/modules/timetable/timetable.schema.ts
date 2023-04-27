@@ -61,3 +61,13 @@ export const setTimetableSchema = z.object({
 });
 
 export type setTimetableInput = z.TypeOf<typeof setTimetableSchema>['body'];
+
+export const setFirebaseTokenSchema = z.object({
+	body: z.object({
+		token: z.string(),
+	}),
+});
+
+export type setFirebaseTokenInput = z.TypeOf<
+	typeof setFirebaseTokenSchema
+>['body'];
