@@ -13,6 +13,7 @@ Table User {
   academicDetails AcademicDetails
   teachesCourses TeachersOnCourse [not null]
   attendance Attendance [not null]
+  announcement Announcement [not null]
 }
 
 Table Profile {
@@ -65,6 +66,7 @@ Table Program {
   currentSemester Int [not null, default: 0]
   students AcademicDetails [not null]
   batches Batch [not null]
+  announcement Announcement [not null]
 }
 
 Table Semester {
@@ -132,6 +134,16 @@ Table Timetable {
   batch Batch [not null]
 }
 
+Table Announcement {
+  announcementId String [pk]
+  title String [not null]
+  content String [not null]
+  userId String
+  announcer User
+  programId String
+  program Program
+}
+
 Enum Gender {
   MALE
   FEMALE
@@ -177,3 +189,7 @@ Ref: Attendance.userId > User.id
 Ref: Attendance.courseId > Course.courseId
 
 Ref: Timetable.batchId - Batch.id
+
+Ref: Announcement.userId > User.id
+
+Ref: Announcement.programId > Program.programId
