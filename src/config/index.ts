@@ -8,7 +8,7 @@ let envConfig;
 
 switch (stage) {
 	case 'production':
-		envConfig = require('./prod').defaut;
+		envConfig = require('./prod').default;
 		break;
 	case 'testing':
 		envConfig = require('./testing').default;
@@ -21,6 +21,8 @@ switch (stage) {
 type Config = {
 	env: string;
 	port: number;
+	fileStoreLocation: string;
+	fcmToken: string;
 	logger: {
 		level: string;
 	};
@@ -38,6 +40,10 @@ type Config = {
 		refreshToken: string;
 		accessTokenExpiry: string;
 	};
+	attendance: {
+		tokenSecret: string;
+		tokenExpiry: string;
+	};
 };
 
 export default merge(
@@ -45,12 +51,14 @@ export default merge(
 		stage,
 		env: process.env.NODE_ENV,
 		port: 5000,
+		fileStoreLocation: process.env.FILE_STORE_LOCATION,
+		fcmToken: process.env.FCM_TOKEN,
 		logger: {
 			level: 'info',
 		},
 		admin: {
 			username: 'admin',
-			password: 'admin',
+			password: 'Admin@1234',
 			email: 'admin@admin.com',
 		},
 		api: {
@@ -64,6 +72,10 @@ export default merge(
 			accessToken: process.env.ACCESS_TOKEN_SECRET,
 			refreshToken: process.env.REFRESH_TOKEN_SECRET,
 			accessTokenExpiry: process.env.ACCESS_TOKEN_EXPIRY,
+		},
+		attendance: {
+			tokenSecret: process.env.ATTENDANCE_TOKEN_SECRET,
+			tokenExpiry: process.env.ATTENDANCE_TOKEN_EXPIRY,
 		},
 	},
 	envConfig,

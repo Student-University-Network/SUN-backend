@@ -1,10 +1,15 @@
 import { HttpStatusCode } from '@/constants/HttpStatusCodes';
 import { Status } from '@/constants/Status';
-import { loginInput, registerInput } from '@/modules/auth/auth.schema';
+import {
+	loginInput,
+	registerBatchInput,
+	registerInput,
+} from '@/modules/auth/auth.schema';
 import {
 	createUser,
 	login,
-	generateAccessToken,
+	createBatchUsers,
+	refresh,
 } from '@/modules/auth/auth.service';
 import log from '@/utils/logger';
 import { Request, Response } from 'express';
@@ -13,7 +18,7 @@ export async function loginHandler(
 	req: Request<{}, {}, loginInput>,
 	res: Response,
 ) {
-	const { username, accessToken, refreshToken } = await login(req.body);
+	const { refreshToken, ...rest } = await login(req.body);
 
 	res.cookie('x-refresh', refreshToken, {
 		httpOnly: true,
@@ -22,8 +27,7 @@ export async function loginHandler(
 	res.status(HttpStatusCode.OK).json({
 		status: Status.SUCCESS,
 		message: 'Logged in successfully',
-		username,
-		accessToken,
+		data: { ...rest },
 	});
 }
 
@@ -40,19 +44,26 @@ export async function registerHandler(
 	});
 }
 
+export async function registerBatchHandler(
+	req: Request<{}, {}, registerBatchInput>,
+	res: Response,
+) {
+	const usersCsv = await createBatchUsers(req.body);
+
+	res.writeHead(200, [
+		['Content-Type', 'text/csv'],
+		['Content-Disposition', "attachment; filename='usersFile.csv'"],
+	]);
+	res.end(usersCsv);
+}
+
 export async function refreshTokenHandler(req: Request, res: Response) {
 	const refreshToken = req.cookies['x-refresh'];
-
 	if (!refreshToken) return res.sendStatus(HttpStatusCode.UNAUTHORIZED);
 
-	const accessToken = await generateAccessToken(refreshToken);
+	const data = await refresh(refreshToken);
 
-	if (!accessToken) return res.sendStatus(HttpStatusCode.UNAUTHORIZED);
-
-	log.debug('Access Token Generated %s', accessToken);
-	res.status(HttpStatusCode.OK).json({
-		accessToken,
-	});
+	res.status(HttpStatusCode.OK).json({ ...data });
 }
 
 export async function logoutHandler(req: Request, res: Response) {

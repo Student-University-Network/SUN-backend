@@ -28,21 +28,30 @@ enum Role {
   STUDENT
 }
 
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+}
+
 model User {
-  id              String        @id @default(uuid())
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  firstName       String
-  lastName        String
-  role            Role          @default(STUDENT)
-  userLoginData   UserLoginData @relation(fields: [userLoginDataId], references: [id])
-  userLoginDataId String        @unique
+  id              String             @id @default(uuid())
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  role            Role               @default(STUDENT)
+  userLoginData   UserLoginData      @relation(fields: [userLoginDataId], references: [id])
+  userLoginDataId String             @unique
   profile         Profile?
+  academicDetails AcademicDetails?
+  teachesCourses  TeachersOnCourse[]
+  attendance      Attendance[]
+  announcement    Announcement[]
 }
 
 model Profile {
   id          String    @id @default(uuid())
   gender      Gender?
+  firstName   String?
+  lastName    String?
   middleName  String?
   dateOfBirth DateTime? @db.Date()
   user        User?     @relation(fields: [userId], references: [id])
@@ -57,4 +66,127 @@ model UserLoginData {
   password String
   email    String @unique
   User     User?
+}
+
+model AcademicDetails {
+  userId    String  @id @default(uuid())
+  User      User    @relation(fields: [userId], references: [id])
+  rollNo    Int?    @unique
+  batchId   String?
+  batch     Batch?  @relation(fields: [batchId], references: [id])
+  programId String
+  program   Program @relation(fields: [programId], references: [programId])
+
+  @@index([userId])
+  @@index([batchId])
+  @@index([programId])
+}
+
+model Batch {
+  id        String             @id @default(uuid())
+  batchName String             @db.VarChar(255)
+  students  AcademicDetails[]
+  courses   TeachersOnCourse[]
+  program   Program?           @relation(fields: [programId], references: [programId])
+  programId String?
+  timetable Timetable?
+
+  @@index([programId])
+}
+
+model Program {
+  programId       String            @id @default(uuid())
+  programName     String            @unique
+  duration        Int               @default(0)
+  startYear       DateTime
+  endYear         DateTime
+  tag             String            @default("")
+  semesters       Semester[]
+  currentSemester Int               @default(0)
+  students        AcademicDetails[]
+  batches         Batch[]
+  announcement    Announcement[]
+}
+
+model Semester {
+  semesterId   String   @id @default(uuid())
+  semesterName String   @db.VarChar(255)
+  order        Int
+  programId    String   @db.VarChar(255)
+  program      Program  @relation(fields: [programId], references: [programId])
+  courses      Course[]
+
+  @@index([programId])
+}
+
+model Course {
+  courseId      String             @id @default(uuid()) @map("id")
+  courseName    String             @db.VarChar(255)
+  totalLectures Int                @default(0)
+  compulsory    Boolean            @default(true)
+  semesterId    String             @db.VarChar(255)
+  semester      Semester           @relation(fields: [semesterId], references: [semesterId])
+  teachedBy     TeachersOnCourse[]
+  attendance    Attendance[]
+
+  @@index([semesterId])
+}
+
+model TeachersOnCourse {
+  courseId    String
+  course      Course  @relation(fields: [courseId], references: [courseId])
+  professorId String? @db.VarChar(255)
+  professor   User?   @relation(fields: [professorId], references: [id])
+  batchId     String
+  forBatch    Batch   @relation(fields: [batchId], references: [id])
+
+  @@id([courseId, batchId])
+  @@index([courseId])
+  @@index([professorId])
+  @@index([batchId])
+}
+
+model AttendanceToken {
+  token     String   @unique
+  lectureId String
+  courseId  String
+  createdAt DateTime @default(now())
+}
+
+model FirebaseToken {
+  id    String @id @default(uuid())
+  token String
+}
+
+model Attendance {
+  userId    String           @db.VarChar(255)
+  courseId  String           @db.VarChar(255)
+  attended  AttendanceStatus @default(ABSENT)
+  lectureId String
+  student   User             @relation(fields: [userId], references: [id])
+  course    Course           @relation(fields: [courseId], references: [courseId])
+
+  @@unique([userId, courseId, lectureId], name: "attendanceId")
+  @@index([userId])
+  @@index([courseId])
+}
+
+model Timetable {
+  timetableId   String @id @default(uuid())
+  timetableData Json
+  batchId       String @unique
+  batch         Batch  @relation(fields: [batchId], references: [id])
+}
+
+model Announcement {
+  announcementId String   @id @default(uuid())
+  title          String
+  content        String   @db.Text
+  userId         String?
+  announcer      User?    @relation(fields: [userId], references: [id])
+  programId      String?
+  program        Program? @relation(fields: [programId], references: [programId])
+
+  @@index([userId])
+  @@index([programId])
 }

@@ -10,8 +10,6 @@ async function seed() {
 	const hashPassword = await argon2.hash(config.admin.password);
 	const admin = await db.user.create({
 		data: {
-			firstName: 'Admin',
-			lastName: 'User',
 			role: Role.ADMIN,
 			userLoginData: {
 				create: {
@@ -20,8 +18,20 @@ async function seed() {
 					username: config.admin.username,
 				},
 			},
+			profile: {
+				create: {
+					firstName: 'Admin',
+					lastName: 'User',
+				},
+			},
 		},
 	});
+	// const adminProfile = await db.profile.create({
+	// 	data: {
+	// 		firstName: 'Admin',
+	// 		lastName: 'User',
+	// 	},
+	// });
 	log.debug(admin);
 }
 

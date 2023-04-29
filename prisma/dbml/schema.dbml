@@ -6,17 +6,21 @@ Table User {
   id String [pk]
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime [not null]
-  firstName String [not null]
-  lastName String [not null]
   role Role [not null, default: 'STUDENT']
   userLoginData UserLoginData [not null]
   userLoginDataId String [unique, not null]
   profile Profile
+  academicDetails AcademicDetails
+  teachesCourses TeachersOnCourse [not null]
+  attendance Attendance [not null]
+  announcement Announcement [not null]
 }
 
 Table Profile {
   id String [pk]
   gender Gender
+  firstName String
+  lastName String
   middleName String
   dateOfBirth DateTime
   user User
@@ -29,6 +33,115 @@ Table UserLoginData {
   password String [not null]
   email String [unique, not null]
   User User
+}
+
+Table AcademicDetails {
+  userId String [pk]
+  User User [not null]
+  rollNo Int [unique]
+  batchId String
+  batch Batch
+  programId String [not null]
+  program Program [not null]
+}
+
+Table Batch {
+  id String [pk]
+  batchName String [not null]
+  students AcademicDetails [not null]
+  courses TeachersOnCourse [not null]
+  program Program
+  programId String
+  timetable Timetable
+}
+
+Table Program {
+  programId String [pk]
+  programName String [unique, not null]
+  duration Int [not null, default: 0]
+  startYear DateTime [not null]
+  endYear DateTime [not null]
+  tag String [not null, default: '']
+  semesters Semester [not null]
+  currentSemester Int [not null, default: 0]
+  students AcademicDetails [not null]
+  batches Batch [not null]
+  announcement Announcement [not null]
+}
+
+Table Semester {
+  semesterId String [pk]
+  semesterName String [not null]
+  order Int [not null]
+  programId String [not null]
+  program Program [not null]
+  courses Course [not null]
+}
+
+Table Course {
+  courseId String [pk]
+  courseName String [not null]
+  totalLectures Int [not null, default: 0]
+  compulsory Boolean [not null, default: true]
+  semesterId String [not null]
+  semester Semester [not null]
+  teachedBy TeachersOnCourse [not null]
+  attendance Attendance [not null]
+}
+
+Table TeachersOnCourse {
+  courseId String [not null]
+  course Course [not null]
+  professorId String
+  professor User
+  batchId String [not null]
+  forBatch Batch [not null]
+
+  indexes {
+    (courseId, batchId) [pk]
+  }
+}
+
+Table AttendanceToken {
+  token String [unique, not null]
+  lectureId String [not null]
+  courseId String [not null]
+  createdAt DateTime [default: `now()`, not null]
+}
+
+Table FirebaseToken {
+  id String [pk]
+  token String [not null]
+}
+
+Table Attendance {
+  userId String [not null]
+  courseId String [not null]
+  attended AttendanceStatus [not null, default: 'ABSENT']
+  lectureId String [not null]
+  student User [not null]
+  course Course [not null]
+
+  indexes {
+    (userId, courseId, lectureId) [unique]
+  }
+}
+
+Table Timetable {
+  timetableId String [pk]
+  timetableData Json [not null]
+  batchId String [unique, not null]
+  batch Batch [not null]
+}
+
+Table Announcement {
+  announcementId String [pk]
+  title String [not null]
+  content String [not null]
+  userId String
+  announcer User
+  programId String
+  program Program
 }
 
 Enum Gender {
@@ -44,6 +157,39 @@ Enum Role {
   STUDENT
 }
 
+Enum AttendanceStatus {
+  PRESENT
+  ABSENT
+}
+
 Ref: User.userLoginDataId - UserLoginData.id
 
 Ref: Profile.userId - User.id
+
+Ref: AcademicDetails.userId - User.id
+
+Ref: AcademicDetails.batchId > Batch.id
+
+Ref: AcademicDetails.programId > Program.programId
+
+Ref: Batch.programId > Program.programId
+
+Ref: Semester.programId > Program.programId
+
+Ref: Course.semesterId > Semester.semesterId
+
+Ref: TeachersOnCourse.courseId > Course.courseId
+
+Ref: TeachersOnCourse.professorId > User.id
+
+Ref: TeachersOnCourse.batchId > Batch.id
+
+Ref: Attendance.userId > User.id
+
+Ref: Attendance.courseId > Course.courseId
+
+Ref: Timetable.batchId - Batch.id
+
+Ref: Announcement.userId > User.id
+
+Ref: Announcement.programId > Program.programId

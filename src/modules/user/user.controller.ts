@@ -5,11 +5,13 @@ import {
 	updateProfileInput,
 } from '@/modules/user/user.schema';
 import {
+	getAcademicDetails,
 	getUserProfile,
 	updatePassword,
 	updateUserProfile,
 } from '@/modules/user/user.service';
 import { Request, Response } from 'express';
+import log from '@/utils/logger';
 
 export async function getProfileHandler(req: Request, res: Response) {
 	const userProfile = await getUserProfile(req.user?.User.id!);
@@ -34,11 +36,20 @@ export async function updateProfileHandler(
 	});
 }
 
+export async function getAcademicDetailsHandler(req: Request, res: Response) {
+	const academicDetails = await getAcademicDetails(req.user?.User.id!);
+
+	res.status(HttpStatusCode.OK).json({
+		status: Status.SUCCESS,
+		data: academicDetails,
+	});
+}
+
 export async function changePasswordHandler(
 	req: Request<{}, {}, changePasswordInput>,
 	res: Response,
 ) {
-	const changePass = updatePassword(req.user?.User.id!, req.body);
+	const changePass = await updatePassword(req.user?.User.id!, req.body);
 
 	res.status(HttpStatusCode.OK).json({
 		status: Status.SUCCESS,

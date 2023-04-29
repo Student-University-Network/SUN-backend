@@ -1,5 +1,10 @@
 import { HttpStatusCode } from '@/constants/HttpStatusCodes';
-import { loginInput, registerInput } from '@/modules/auth/auth.schema';
+import {
+	loginInput,
+	registerBatchInput,
+	registerInput,
+	UsersBatch,
+} from '@/modules/auth/auth.schema';
 import { ApiError } from '@/utils/ApiError';
 import { db } from '@/utils/database';
 import log from '@/utils/logger';
@@ -7,21 +12,24 @@ import argon2 from 'argon2';
 import config from '@/config';
 import jwt from 'jsonwebtoken';
 import { Role, User } from '@prisma/client';
+import { parseCSV, toCSV } from '@/utils/fileUploads';
+import { prismaOperation } from '@/utils/errorHandler';
 
 export async function createUser({
 	email,
 	username,
 	password,
+	firstName,
+	lastName,
+	role = Role.STUDENT,
+	academicDetails,
 	...rest
 }: registerInput) {
-	//
-	log.debug('Checking if user already exists');
 	const userExists = await db.userLoginData.findUnique({
 		where: {
 			username,
 		},
 	});
-
 	if (userExists) {
 		throw new ApiError(
 			'BAD REQUEST',
@@ -29,32 +37,29 @@ export async function createUser({
 			'User already exists with that username',
 		);
 	}
-
-	log.debug('Hashing the password');
 	const hash = await argon2.hash(password);
 
-	// Create record with hashed password
-	log.debug('Creating user record in the database');
 	const user = await db.user.create({
-		data: {
-			...rest,
-			userLoginData: {
-				create: {
-					email,
-					username,
-					password: hash,
-				},
-			},
-		},
+		data: await createNewUserObject(
+			firstName,
+			lastName,
+			username,
+			email,
+			hash,
+			role,
+			academicDetails?.programId || '',
+			{},
+			db,
+		),
 		select: {
-			firstName: true,
-			lastName: true,
+			role: true,
 			userLoginData: {
 				select: {
 					email: true,
 					username: true,
 				},
 			},
+			profile: true,
 		},
 	});
 
@@ -65,14 +70,60 @@ export async function createUser({
 			'User cannot be created!',
 		);
 	}
-
-	log.debug('User created successfully!');
-
 	return { ...user };
 }
 
+export async function createBatchUsers(body: registerBatchInput) {
+	const users = body.users.map((row) => {
+		return {
+			...row,
+			username:
+				row.username ||
+				row.firstName + row.lastName + Math.round(Math.random() * 1e3),
+			password:
+				row.password ||
+				row.firstName + '@' + Math.round(Math.random() * 1e4),
+		};
+	});
+	await prismaOperation(
+		async () =>
+			await db.$transaction(async (tx) => {
+				for (const usr of users) {
+					const role: string = usr.role;
+					await tx.user.create({
+						data: await createNewUserObject(
+							usr.firstName,
+							usr.lastName,
+							usr.username,
+							usr.email,
+							await argon2.hash(usr.password),
+							Role[role as keyof typeof Role],
+							usr.programId || '',
+							{},
+							tx,
+						),
+					});
+				}
+			}),
+	);
+	return toCSV(
+		[
+			['firstName', 'lastName', 'email', 'role', 'username', 'password'],
+			['string', 'string', 'string', 'string', 'string', 'string'],
+		],
+		users.map((usr) => ({
+			firstName: usr.firstName,
+			lastName: usr.lastName,
+			email: usr.email,
+			role: usr.role,
+			username: usr.username,
+			password: usr.password,
+		})),
+		',',
+	);
+}
+
 export async function login({ username, password }: loginInput) {
-	log.debug('Check if the user exists');
 	const userExists = await db.userLoginData.findUnique({
 		where: {
 			username,
@@ -80,7 +131,16 @@ export async function login({ username, password }: loginInput) {
 		select: {
 			username: true,
 			password: true,
-			User: true,
+			User: {
+				include: {
+					profile: true,
+					academicDetails: {
+						select: {
+							programId: true,
+						},
+					},
+				},
+			},
 		},
 	});
 
@@ -91,7 +151,6 @@ export async function login({ username, password }: loginInput) {
 			'Username or password is incorrect', // Not a good idea to tell the user what exactly is incorrect
 		);
 	}
-	log.debug('Verifying password');
 	const isVerified = await argon2.verify(userExists.password, password);
 
 	if (!isVerified) {
@@ -109,8 +168,8 @@ export async function login({ username, password }: loginInput) {
 			createdAt: userExists.User.createdAt,
 			updatedAt: userExists.User.updatedAt,
 			username: userExists.username,
-			firstName: userExists.User.firstName,
-			lastName: userExists.User.lastName,
+			firstName: userExists.User.profile?.firstName || '',
+			lastName: userExists.User.profile?.lastName || '',
 			role: userExists.User.role,
 		},
 	};
@@ -118,11 +177,15 @@ export async function login({ username, password }: loginInput) {
 	const refreshToken = await generateJWT(payload, 'refreshToken');
 
 	return {
+		id: userExists.User.id,
+		role: userExists.User.role,
 		username: userExists.username,
+		firstName: userExists.User.profile?.firstName,
+		lastName: userExists.User.profile?.lastName,
+		programId: userExists.User.academicDetails?.programId,
 		accessToken,
 		refreshToken,
 	};
-	// TODO: save the per device session somewhere
 }
 
 export type JWTPayload = {
@@ -138,8 +201,6 @@ export type JWTPayload = {
 };
 
 async function generateJWT(payload: JWTPayload, type: string) {
-	log.debug('Signing jwt for user %s', payload.User.username);
-
 	return await jwt.sign(
 		payload,
 		type === 'accessToken'
@@ -154,20 +215,107 @@ async function generateJWT(payload: JWTPayload, type: string) {
 	);
 }
 
-export async function generateAccessToken(token: string) {
-	const isValid = (await jwt.verify(
-		token,
-		config.secrets.refreshToken,
-	)) as JWTPayload;
-
-	if (!isValid) return undefined;
-
-	log.debug(isValid);
-
-	const payload = {
-		User: isValid.User,
+export async function refresh(refreshToken: string) {
+	const accessToken = await generateAccessToken(refreshToken);
+	if (!accessToken)
+		throw new ApiError(
+			'Unauthorized',
+			HttpStatusCode.UNAUTHORIZED,
+			'Unauthorized',
+		);
+	const user = await db.user.findUnique({
+		where: {
+			id: accessToken.userId,
+		},
+		select: {
+			id: true,
+			role: true,
+			userLoginData: {
+				select: {
+					username: true,
+				},
+			},
+			profile: {
+				select: {
+					firstName: true,
+					lastName: true,
+				},
+			},
+			academicDetails: {
+				select: {
+					programId: true,
+				},
+			},
+		},
+	});
+	return {
+		id: user?.id,
+		role: user?.role,
+		...user?.userLoginData,
+		...user?.profile,
+		programId: user?.academicDetails?.programId,
+		accessToken: accessToken.accessToken,
 	};
-	const accessToken = await generateJWT(payload, 'accessToken');
+}
 
-	return accessToken;
+export async function generateAccessToken(token: string) {
+	try {
+		const valid = jwt.verify(token, config.secrets.refreshToken);
+		const isValid = valid as JWTPayload;
+
+		if (!isValid) return undefined;
+
+		const payload = {
+			User: isValid.User,
+		};
+		const accessToken = await generateJWT(payload, 'accessToken');
+
+		return { accessToken, userId: isValid.User.id };
+	} catch (e: any) {
+		return undefined;
+	}
+}
+
+async function createNewUserObject(
+	firstName: string,
+	lastName: string,
+	username: string,
+	email: string,
+	hash: string,
+	role: Role,
+	programId: string,
+	rest: any,
+	dbc: any,
+) {
+	let normalData = {
+		...rest,
+		role,
+		userLoginData: {
+			create: {
+				email,
+				username,
+				password: hash,
+			},
+		},
+		profile: {
+			create: {
+				firstName,
+				lastName,
+			},
+		},
+	};
+	if (programId && programId !== '') {
+		return {
+			...normalData,
+			academicDetails: {
+				create: {
+					program: {
+						connect: { programId },
+					},
+				},
+			},
+		};
+	} else {
+		return { ...normalData };
+	}
 }
